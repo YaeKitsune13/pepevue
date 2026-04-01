@@ -15,11 +15,5 @@ func main() {
 		})
 	})
 
-	r.GET("/:name/*action", func(c *gin.Context) {
-		name := c.Param("name")
-		action := c.Param("action")
-		message := name + " сделал " + action
-		c.String(http.StatusOK, message)
-	})
 	r.Run()
 }
