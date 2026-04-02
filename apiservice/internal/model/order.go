@@ -23,4 +23,5 @@ type Order struct {
 	Status       OrderStatus `json:"status" gorm:"column:status;default:Новый"`
 	Address      string      `json:"address" gorm:"column:address"`
 	DateDelivery time.Time   `json:"date_delivery" gorm:"column:dateDelivery"`
+	Items        []OrderItem `json:"items" gorm:"foreignKey:OrderID"`
 }
