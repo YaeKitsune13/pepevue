@@ -9,11 +9,12 @@ import (
 	"gorm.io/gorm"
 )
 
+// 1. Исправлено название структуры
 type OrderService struct {
 	orderRepo      *repository.OrderRepository
 	orderItemsRepo *repository.OrderItemRepository
-	cartRepo       *repository.CartRepository // Добавляем, чтобы забрать товары из корзины
-	db             *gorm.DB                   // Нужно для транзакций
+	cartRepo       *repository.CartRepository
+	db             *gorm.DB
 }
 
 func NewOrderService(ro *repository.OrderRepository, ri *repository.OrderItemRepository, rc *repository.CartRepository, db *gorm.DB) *OrderService {
@@ -25,19 +26,22 @@ func NewOrderService(ro *repository.OrderRepository, ri *repository.OrderItemRep
 	}
 }
 
+var ErrEmptyCart = errors.New("корзина пуста")
+
 func (s *OrderService) PlaceOrder(userID uint, address string) (*model.Order, error) {
 	var finalOrder *model.Order
 
 	err := s.db.Transaction(func(tx *gorm.DB) error {
-		// 1. Получаем корзину
 		cartItems, err := s.cartRepo.GetFullCart(userID)
-		if err != nil || len(cartItems) == 0 {
-			return errors.New("корзина пуста")
+		if err != nil {
+			return err
+		}
+		if len(cartItems) == 0 {
+			return ErrEmptyCart
 		}
 
-		// 2. Считаем сумму и готовим товары
 		var totalPrice float64
-		var orderItems []model.OrderItem
+		orderItems := make([]model.OrderItem, 0, len(cartItems)) // Предварительно выделяем память
 
 		for _, ci := range cartItems {
 			totalPrice += ci.Product.Cost * float64(ci.Count)
@@ -45,33 +49,31 @@ func (s *OrderService) PlaceOrder(userID uint, address string) (*model.Order, er
 			orderItems = append(orderItems, model.OrderItem{
 				ProductID: ci.ProductID,
 				Count:     ci.Count,
-				Cost:      ci.Product.Cost, // Теперь поле есть в модели!
+				Cost:      ci.Product.Cost, // Сохраняем цену на момент покупки! Это правильно.
 			})
 		}
 
-		// 3. Создаем заказ
 		finalOrder = &model.Order{
 			UserID:       userID,
 			PriceAll:     totalPrice,
 			Status:       model.OrderStatusNew,
 			Address:      address,
-			DateDelivery: time.Now().AddDate(0, 0, 3), // Доставка через 3 дня для примера
+			DateDelivery: time.Now().AddDate(0, 0, 3),
 		}
 
-		// Важно: передаем tx в репозиторий!
 		if err := s.orderRepo.Create(tx, finalOrder); err != nil {
 			return err
 		}
 
-		// 4. Сохраняем товары заказа
+		// Устанавливаем OrderID для всех элементов
 		for i := range orderItems {
 			orderItems[i].OrderID = finalOrder.ID
 		}
+
 		if err := s.orderItemsRepo.CreateItems(tx, orderItems); err != nil {
 			return err
 		}
 
-		// 5. Очищаем корзину (используя tx!)
 		if err := s.cartRepo.ClearCart(tx, userID); err != nil {
 			return err
 		}
@@ -79,5 +81,9 @@ func (s *OrderService) PlaceOrder(userID uint, address string) (*model.Order, er
 		return nil
 	})
 
-	return finalOrder, err
+	if err != nil {
+		return nil, err
+	}
+
+	return finalOrder, nil
 }
