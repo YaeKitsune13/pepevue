@@ -49,7 +49,7 @@ func (s *OrderService) PlaceOrder(userID uint, address string) (*model.Order, er
 			orderItems = append(orderItems, model.OrderItem{
 				ProductID: ci.ProductID,
 				Count:     ci.Count,
-				Cost:      ci.Product.Cost, // Сохраняем цену на момент покупки! Это правильно.
+				Cost:      ci.Product.Cost,
 			})
 		}
 
@@ -65,7 +65,6 @@ func (s *OrderService) PlaceOrder(userID uint, address string) (*model.Order, er
 			return err
 		}
 
-		// Устанавливаем OrderID для всех элементов
 		for i := range orderItems {
 			orderItems[i].OrderID = finalOrder.ID
 		}

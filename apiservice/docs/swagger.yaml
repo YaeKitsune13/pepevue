@@ -1,0 +1,211 @@
+basePath: /
+definitions:
+  apiservice_internal_dto.AccountCreateRequest:
+    properties:
+      login:
+        type: string
+      name:
+        type: string
+      password:
+        minLength: 6
+        type: string
+      patronymic:
+        type: string
+      surname:
+        type: string
+    required:
+    - login
+    - name
+    - password
+    - patronymic
+    - surname
+    type: object
+  apiservice_internal_dto.AccountLoginRequest:
+    properties:
+      login:
+        type: string
+      password:
+        type: string
+    required:
+    - login
+    - password
+    type: object
+  apiservice_internal_dto.AccountResponse:
+    properties:
+      login:
+        type: string
+      name:
+        type: string
+      patronymic:
+        type: string
+      surname:
+        type: string
+    type: object
+  apiservice_internal_dto.OrderResponse:
+    properties:
+      address:
+        type: string
+      date_delivery:
+        type: string
+      order_status:
+        $ref: '#/definitions/apiservice_internal_model.OrderStatus'
+      price_all:
+        type: number
+      user_id:
+        type: integer
+    type: object
+  apiservice_internal_model.OrderStatus:
+    enum:
+    - Новый
+    - Отправка
+    - Завершен
+    - Отменен
+    type: string
+    x-enum-varnames:
+    - OrderStatusNew
+    - OrderStatusPending
+    - OrderStatusCompleted
+    - OrderStatusCancelled
+  internal_handler.PlaceOrderInput:
+    properties:
+      address:
+        type: string
+    required:
+    - address
+    type: object
+host: localhost:8080
+info:
+  contact: {}
+  description: 'API для интернет-магазина: продукты, корзина, заказы, аккаунты.'
+  termsOfService: http://swagger.io/terms/
+  title: API Service
+  version: "1.0"
+paths:
+  /login:
+    post:
+      consumes:
+      - application/json
+      description: Проверяет логин/пароль и устанавливает httpOnly cookie с JWT
+      parameters:
+      - description: Данные для входа
+        in: body
+        name: input
+        required: true
+        schema:
+          $ref: '#/definitions/apiservice_internal_dto.AccountLoginRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/apiservice_internal_dto.AccountResponse'
+        "400":
+          description: Bad Request
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "401":
+          description: Unauthorized
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: Вход в аккаунт
+      tags:
+      - account
+  /logout:
+    post:
+      description: Удаляет cookie-сессию
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      security:
+      - CookieAuth: []
+      summary: Выход из аккаунта
+      tags:
+      - account
+  /order:
+    post:
+      consumes:
+      - application/json
+      description: Создаёт заказ из содержимого корзины авторизованного пользователя
+        и очищает корзину
+      parameters:
+      - description: Адрес доставки
+        in: body
+        name: input
+        required: true
+        schema:
+          $ref: '#/definitions/internal_handler.PlaceOrderInput'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+          schema:
+            $ref: '#/definitions/apiservice_internal_dto.OrderResponse'
+        "400":
+          description: Bad Request
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "401":
+          description: Unauthorized
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "500":
+          description: Internal Server Error
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      security:
+      - CookieAuth: []
+      summary: Оформить заказ
+      tags:
+      - order
+  /register:
+    post:
+      consumes:
+      - application/json
+      description: Создаёт новый аккаунт по логину и паролю
+      parameters:
+      - description: Данные регистрации
+        in: body
+        name: input
+        required: true
+        schema:
+          $ref: '#/definitions/apiservice_internal_dto.AccountCreateRequest'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+          schema:
+            $ref: '#/definitions/apiservice_internal_dto.AccountResponse'
+        "400":
+          description: Bad Request
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: Регистрация аккаунта
+      tags:
+      - account
+securityDefinitions:
+  CookieAuth:
+    in: cookie
+    name: session_token
+    type: apiKey
+swagger: "2.0"
