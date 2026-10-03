@@ -16,6 +16,234 @@ const docTemplate = `{
     "host": "{{.Host}}",
     "basePath": "{{.BasePath}}",
     "paths": {
+        "/cart": {
+            "get": {
+                "security": [
+                    {
+                        "CookieAuth": []
+                    }
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "cart"
+                ],
+                "summary": "Корзина",
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/dto.CartListResponse"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    }
+                }
+            },
+            "put": {
+                "security": [
+                    {
+                        "CookieAuth": []
+                    }
+                ],
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "cart"
+                ],
+                "summary": "Изменить количество",
+                "parameters": [
+                    {
+                        "description": "Товар и новое количество",
+                        "name": "input",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/dto.CartUpdateRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/dto.CartListResponse"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    },
+                    "404": {
+                        "description": "Not Found",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    },
+                    "409": {
+                        "description": "Conflict",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    }
+                }
+            },
+            "post": {
+                "security": [
+                    {
+                        "CookieAuth": []
+                    }
+                ],
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "cart"
+                ],
+                "summary": "Добавить в корзину",
+                "parameters": [
+                    {
+                        "description": "Товар и количество",
+                        "name": "input",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/dto.CartAddRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/dto.CartListResponse"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    },
+                    "404": {
+                        "description": "Not Found",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    },
+                    "409": {
+                        "description": "Conflict",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/cart/{product_id}": {
+            "delete": {
+                "security": [
+                    {
+                        "CookieAuth": []
+                    }
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "cart"
+                ],
+                "summary": "Удалить из корзины",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "ID товара",
+                        "name": "product_id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/dto.CartListResponse"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    }
+                }
+            }
+        },
         "/login": {
             "post": {
                 "description": "Проверяет логин/пароль и устанавливает httpOnly cookie с JWT",
@@ -36,7 +264,7 @@ const docTemplate = `{
                         "in": "body",
                         "required": true,
                         "schema": {
-                            "$ref": "#/definitions/apiservice_internal_dto.AccountLoginRequest"
+                            "$ref": "#/definitions/dto.AccountLoginRequest"
                         }
                     }
                 ],
@@ -44,7 +272,7 @@ const docTemplate = `{
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "$ref": "#/definitions/apiservice_internal_dto.AccountResponse"
+                            "$ref": "#/definitions/dto.AccountResponse"
                         }
                     },
                     "400": {
@@ -75,7 +303,6 @@ const docTemplate = `{
                         "CookieAuth": []
                     }
                 ],
-                "description": "Удаляет cookie-сессию",
                 "produces": [
                     "application/json"
                 ],
@@ -96,14 +323,46 @@ const docTemplate = `{
                 }
             }
         },
-        "/order": {
-            "post": {
+        "/me": {
+            "get": {
                 "security": [
                     {
                         "CookieAuth": []
                     }
                 ],
-                "description": "Создаёт заказ из содержимого корзины авторизованного пользователя и очищает корзину",
+                "description": "Данные текущего пользователя (Vue использует для проверки сессии)",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "account"
+                ],
+                "summary": "Профиль",
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/dto.AccountResponse"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    }
+                }
+            },
+            "put": {
+                "security": [
+                    {
+                        "CookieAuth": []
+                    }
+                ],
+                "description": "Пустой password — пароль не меняется",
                 "consumes": [
                     "application/json"
                 ],
@@ -111,25 +370,25 @@ const docTemplate = `{
                     "application/json"
                 ],
                 "tags": [
-                    "order"
+                    "account"
                 ],
-                "summary": "Оформить заказ",
+                "summary": "Изменить профиль",
                 "parameters": [
                     {
-                        "description": "Адрес доставки",
+                        "description": "Новые данные",
                         "name": "input",
                         "in": "body",
                         "required": true,
                         "schema": {
-                            "$ref": "#/definitions/internal_handler.PlaceOrderInput"
+                            "$ref": "#/definitions/dto.AccountUpdateRequest"
                         }
                     }
                 ],
                 "responses": {
-                    "201": {
-                        "description": "Created",
+                    "200": {
+                        "description": "OK",
                         "schema": {
-                            "$ref": "#/definitions/apiservice_internal_dto.OrderResponse"
+                            "$ref": "#/definitions/dto.AccountResponse"
                         }
                     },
                     "400": {
@@ -150,6 +409,115 @@ const docTemplate = `{
                             }
                         }
                     },
+                    "409": {
+                        "description": "Conflict",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    }
+                }
+            },
+            "delete": {
+                "security": [
+                    {
+                        "CookieAuth": []
+                    }
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "account"
+                ],
+                "summary": "Удалить аккаунт",
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/order": {
+            "post": {
+                "security": [
+                    {
+                        "CookieAuth": []
+                    }
+                ],
+                "description": "Создаёт заказ из корзины, списывает остатки со склада и очищает корзину",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "order"
+                ],
+                "summary": "Оформить заказ",
+                "parameters": [
+                    {
+                        "description": "Адрес и дата доставки",
+                        "name": "input",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/handler.PlaceOrderInput"
+                        }
+                    }
+                ],
+                "responses": {
+                    "201": {
+                        "description": "Created",
+                        "schema": {
+                            "$ref": "#/definitions/dto.OrderResponse"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    },
+                    "409": {
+                        "description": "Conflict",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    },
                     "500": {
                         "description": "Internal Server Error",
                         "schema": {
@@ -162,9 +530,85 @@ const docTemplate = `{
                 }
             }
         },
+        "/products": {
+            "get": {
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "product"
+                ],
+                "summary": "Список товаров",
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "type": "array",
+                            "items": {
+                                "$ref": "#/definitions/dto.ProductResponse"
+                            }
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/products/{id}": {
+            "get": {
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "product"
+                ],
+                "summary": "Карточка товара",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "ID товара",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/dto.ProductResponse"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    },
+                    "404": {
+                        "description": "Not Found",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    }
+                }
+            }
+        },
         "/register": {
             "post": {
-                "description": "Создаёт новый аккаунт по логину и паролю",
                 "consumes": [
                     "application/json"
                 ],
@@ -182,7 +626,7 @@ const docTemplate = `{
                         "in": "body",
                         "required": true,
                         "schema": {
-                            "$ref": "#/definitions/apiservice_internal_dto.AccountCreateRequest"
+                            "$ref": "#/definitions/dto.AccountCreateRequest"
                         }
                     }
                 ],
@@ -190,11 +634,20 @@ const docTemplate = `{
                     "201": {
                         "description": "Created",
                         "schema": {
-                            "$ref": "#/definitions/apiservice_internal_dto.AccountResponse"
+                            "$ref": "#/definitions/dto.AccountResponse"
                         }
                     },
                     "400": {
                         "description": "Bad Request",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    },
+                    "409": {
+                        "description": "Conflict",
                         "schema": {
                             "type": "object",
                             "additionalProperties": {
@@ -207,13 +660,74 @@ const docTemplate = `{
         }
     },
     "definitions": {
-        "apiservice_internal_dto.AccountCreateRequest": {
+        "dto.AccountCreateRequest": {
             "type": "object",
             "required": [
                 "login",
                 "name",
                 "password",
-                "patronymic",
+                "surname"
+            ],
+            "properties": {
+                "login": {
+                    "type": "string"
+                },
+                "name": {
+                    "type": "string"
+                },
+                "password": {
+                    "type": "string",
+                    "minLength": 6
+                },
+                "patronymic": {
+                    "description": "в PHP-форме отчество необязательное",
+                    "type": "string"
+                },
+                "surname": {
+                    "type": "string"
+                }
+            }
+        },
+        "dto.AccountLoginRequest": {
+            "type": "object",
+            "required": [
+                "login",
+                "password"
+            ],
+            "properties": {
+                "login": {
+                    "type": "string"
+                },
+                "password": {
+                    "type": "string"
+                }
+            }
+        },
+        "dto.AccountResponse": {
+            "type": "object",
+            "properties": {
+                "login": {
+                    "type": "string"
+                },
+                "name": {
+                    "type": "string"
+                },
+                "patronymic": {
+                    "type": "string"
+                },
+                "role": {
+                    "type": "string"
+                },
+                "surname": {
+                    "type": "string"
+                }
+            }
+        },
+        "dto.AccountUpdateRequest": {
+            "type": "object",
+            "required": [
+                "login",
+                "name",
                 "surname"
             ],
             "properties": {
@@ -235,39 +749,76 @@ const docTemplate = `{
                 }
             }
         },
-        "apiservice_internal_dto.AccountLoginRequest": {
+        "dto.CartAddRequest": {
             "type": "object",
             "required": [
-                "login",
-                "password"
+                "count",
+                "product_id"
             ],
             "properties": {
-                "login": {
-                    "type": "string"
+                "count": {
+                    "type": "integer",
+                    "minimum": 1
                 },
-                "password": {
-                    "type": "string"
+                "product_id": {
+                    "type": "integer"
                 }
             }
         },
-        "apiservice_internal_dto.AccountResponse": {
+        "dto.CartItemResponse": {
             "type": "object",
             "properties": {
-                "login": {
+                "cost": {
+                    "type": "number"
+                },
+                "count": {
+                    "type": "integer"
+                },
+                "image_url": {
                     "type": "string"
                 },
-                "name": {
+                "product_id": {
+                    "type": "integer"
+                },
+                "title": {
                     "type": "string"
                 },
-                "patronymic": {
-                    "type": "string"
-                },
-                "surname": {
-                    "type": "string"
+                "total": {
+                    "type": "number"
                 }
             }
         },
-        "apiservice_internal_dto.OrderResponse": {
+        "dto.CartListResponse": {
+            "type": "object",
+            "properties": {
+                "items": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/dto.CartItemResponse"
+                    }
+                },
+                "total": {
+                    "type": "number"
+                }
+            }
+        },
+        "dto.CartUpdateRequest": {
+            "type": "object",
+            "required": [
+                "count",
+                "product_id"
+            ],
+            "properties": {
+                "count": {
+                    "type": "integer",
+                    "minimum": 1
+                },
+                "product_id": {
+                    "type": "integer"
+                }
+            }
+        },
+        "dto.OrderResponse": {
             "type": "object",
             "properties": {
                 "address": {
@@ -276,8 +827,11 @@ const docTemplate = `{
                 "date_delivery": {
                     "type": "string"
                 },
+                "id": {
+                    "type": "integer"
+                },
                 "order_status": {
-                    "$ref": "#/definitions/apiservice_internal_model.OrderStatus"
+                    "$ref": "#/definitions/model.OrderStatus"
                 },
                 "price_all": {
                     "type": "number"
@@ -287,7 +841,48 @@ const docTemplate = `{
                 }
             }
         },
-        "apiservice_internal_model.OrderStatus": {
+        "dto.ProductResponse": {
+            "type": "object",
+            "properties": {
+                "category_name": {
+                    "type": "string"
+                },
+                "cost": {
+                    "type": "number"
+                },
+                "count": {
+                    "type": "integer"
+                },
+                "description": {
+                    "type": "string"
+                },
+                "id": {
+                    "type": "integer"
+                },
+                "image_url": {
+                    "type": "string"
+                },
+                "title": {
+                    "type": "string"
+                }
+            }
+        },
+        "handler.PlaceOrderInput": {
+            "type": "object",
+            "required": [
+                "address"
+            ],
+            "properties": {
+                "address": {
+                    "type": "string"
+                },
+                "date_delivery": {
+                    "description": "DateDelivery в формате ГГГГ-ММ-ДД (как \u003cinput type=\"date\"\u003e). Необязательно: по умолчанию +3 дня.",
+                    "type": "string"
+                }
+            }
+        },
+        "model.OrderStatus": {
             "type": "string",
             "enum": [
                 "Новый",
@@ -301,17 +896,6 @@ const docTemplate = `{
                 "OrderStatusCompleted",
                 "OrderStatusCancelled"
             ]
-        },
-        "internal_handler.PlaceOrderInput": {
-            "type": "object",
-            "required": [
-                "address"
-            ],
-            "properties": {
-                "address": {
-                    "type": "string"
-                }
-            }
         }
     },
     "securityDefinitions": {

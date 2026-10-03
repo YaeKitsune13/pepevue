@@ -15,6 +15,8 @@ import (
 	"fmt"
 	"log"
 	"os"
+	"strings"
+	"time"
 
 	_ "apiservice/docs"
 	"apiservice/internal/handler"
@@ -23,6 +25,7 @@ import (
 	"apiservice/internal/repository"
 	"apiservice/internal/service"
 
+	"github.com/gin-contrib/cors"
 	"github.com/gin-gonic/gin"
 	"github.com/joho/godotenv"
 	swaggerFiles "github.com/swaggo/files"
@@ -59,6 +62,9 @@ func main() {
 	}
 
 	jwtSecret := os.Getenv("JWT_SECRET")
+	if jwtSecret == "" {
+		log.Fatal("JWT_SECRET не задан")
+	}
 
 	// Репозитории
 	accountRepo := repository.NewAccountRepository(db)
@@ -70,32 +76,56 @@ func main() {
 	// Сервисы
 	accountService := service.NewAccountService(accountRepo)
 	productService := service.NewProductService(productRepo)
-	cartService := service.NewCartService(cartRepo)
-	orderService := service.NewOrderService(orderRepo, orderItemRepo, cartRepo, db)
+	cartService := service.NewCartService(cartRepo, productService)
+	orderService := service.NewOrderService(orderRepo, orderItemRepo, cartRepo, productRepo, db)
 
 	// Хендлеры
 	accountHandler := handler.NewAccountHandler(accountService, jwtSecret)
+	productHandler := handler.NewProductHandler(productService)
+	cartHandler := handler.NewCartHandler(cartService)
 	orderHandler := handler.NewOrderHandler(orderService)
-	_ = productService // подключить к CartHandler/ProductHandler, когда появятся
-	_ = cartService
 
 	r := gin.Default()
+
+	// CORS для Vue (dev-сервер Vite по умолчанию на :5173). Cookie-сессия требует
+	// AllowCredentials и точного списка origin (с "*" credentials не работают).
+	origins := []string{"http://localhost:5173"}
+	if env := os.Getenv("CORS_ORIGINS"); env != "" {
+		origins = strings.Split(env, ",")
+	}
+	r.Use(cors.New(cors.Config{
+		AllowOrigins:     origins,
+		AllowMethods:     []string{"GET", "POST", "PUT", "DELETE", "OPTIONS"},
+		AllowHeaders:     []string{"Content-Type"},
+		AllowCredentials: true,
+		MaxAge:           12 * time.Hour,
+	}))
 
 	r.GET("/ping", func(c *gin.Context) {
 		c.JSON(200, gin.H{"message": "pong"})
 	})
-
 	r.GET("/swagger/*any", ginSwagger.WrapHandler(swaggerFiles.Handler))
 
 	// Публичные маршруты
 	r.POST("/register", accountHandler.Register)
 	r.POST("/login", accountHandler.Login)
+	r.GET("/products", productHandler.List)
+	r.GET("/products/:id", productHandler.Get)
 
 	// Приватные маршруты (требуют cookie-сессию)
 	auth := r.Group("/")
 	auth.Use(middleware.AuthRequired(jwtSecret))
 	{
 		auth.POST("/logout", accountHandler.Logout)
+		auth.GET("/me", accountHandler.Me)
+		auth.PUT("/me", accountHandler.UpdateMe)
+		auth.DELETE("/me", accountHandler.DeleteMe)
+
+		auth.GET("/cart", cartHandler.Get)
+		auth.POST("/cart", cartHandler.Add)
+		auth.PUT("/cart", cartHandler.Update)
+		auth.DELETE("/cart/:product_id", cartHandler.Remove)
+
 		auth.POST("/order", orderHandler.PlaceOrder)
 	}
 

@@ -6,6 +6,7 @@ import (
 )
 
 type OrderResponse struct {
+	ID           uint              `json:"id"`
 	PriceAll     float64           `json:"price_all"`
 	UserID       uint              `json:"user_id"`
 	Status       model.OrderStatus `json:"order_status"`

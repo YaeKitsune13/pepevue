@@ -1,6 +1,7 @@
 package dto
 
 type ProductResponse struct {
+	ID           uint    `json:"id"`
 	Title        string  `json:"title"`
 	Image        string  `json:"image_url"`
 	Description  string  `json:"description"`

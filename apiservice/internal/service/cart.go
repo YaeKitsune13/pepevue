@@ -1,70 +1,76 @@
 package service
 
 import (
+	"errors"
+
 	"apiservice/internal/model"
 	"apiservice/internal/repository"
-	"errors"
+
+	"gorm.io/gorm"
 )
 
 type CartService struct {
-	repo *repository.CartRepository
+	repo     *repository.CartRepository
+	products *ProductService
 }
 
-func NewCartService(repo *repository.CartRepository) *CartService {
-	return &CartService{
-		repo: repo,
-	}
+func NewCartService(repo *repository.CartRepository, products *ProductService) *CartService {
+	return &CartService{repo: repo, products: products}
 }
 
-func (s *CartService) AddProductToCart(userID uint, productID uint, count int16, prodService *ProductService) error {
-	product, err := prodService.GetProduct(productID)
-	if err != nil {
-		return errors.New("продукт не найден")
-	}
+func (s *CartService) GetCart(userID uint) ([]model.Cart, error) {
+	return s.repo.GetFullCart(userID)
+}
 
+// AddProduct добавляет товар; если он уже в корзине — увеличивает количество.
+func (s *CartService) AddProduct(userID, productID uint, count int16) error {
 	if count <= 0 {
-		return errors.New("количество должно быть больше 0")
+		return ErrInvalidCount
+	}
+	product, err := s.products.GetProduct(productID)
+	if err != nil {
+		return err
 	}
 
-	if count > product.Count {
-		return errors.New("недостаточно товара на складе")
-	}
-
-	// 4. Логика "Умного добавления" (Опционально, но круто для оценки)
-	existingItem, err := s.repo.GetByUserAndProduct(userID, productID)
-
-	if err == nil {
-		newCount := existingItem.Count + count
-
-		if newCount > product.Count {
-			return errors.New("нельзя добавить больше, чем есть на складе")
+	existing, err := s.repo.GetByUserAndProduct(userID, productID)
+	switch {
+	case err == nil:
+		if int(existing.Count)+int(count) > int(product.Count) {
+			return ErrNotEnoughStock
 		}
-
-		return s.repo.UpdateProductCount(userID, existingItem.ID, newCount)
+		return s.repo.UpdateProductCount(userID, productID, existing.Count+count)
+	case errors.Is(err, gorm.ErrRecordNotFound):
+		if count > product.Count {
+			return ErrNotEnoughStock
+		}
+		return s.repo.AddToCart(&model.Cart{UserID: userID, ProductID: productID, Count: count})
+	default:
+		return err
 	}
-	newItem := &model.Cart{
-		UserID:    userID,
-		ProductID: productID,
-		Count:     count,
-	}
-
-	return s.repo.AddToCart(newItem)
 }
 
-func (serv *CartService) UpdateCountCart(productId uint, userId uint, count int16, prod_service *ProductService) error {
-	product, err := prod_service.GetProduct(productId)
-
+// SetCount устанавливает точное количество товара, уже лежащего в корзине.
+func (s *CartService) SetCount(userID, productID uint, count int16) error {
+	if count <= 0 {
+		return ErrInvalidCount
+	}
+	product, err := s.products.GetProduct(productID)
 	if err != nil {
-		return errors.New("Не нашли продукт в базе")
+		return err
 	}
-
-	if count < 0 {
-		return errors.New("Количество не может быть меньше 0")
+	if count > product.Count {
+		return ErrNotEnoughStock
 	}
-
-	if count >= int16(product.Count) {
-		return errors.New("Кол-во товаров на складе закончилось")
+	if _, err := s.repo.GetByUserAndProduct(userID, productID); err != nil {
+		if errors.Is(err, gorm.ErrRecordNotFound) {
+			return ErrCartItemNotFound
+		}
+		return err
 	}
+	return s.repo.UpdateProductCount(userID, productID, count)
+}
 
-	return nil
+// RemoveProduct идемпотентно удаляет позицию из корзины.
+func (s *CartService) RemoveProduct(userID, productID uint) error {
+	return s.repo.DeleteFromCart(userID, productID)
 }

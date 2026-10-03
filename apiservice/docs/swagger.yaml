@@ -1,6 +1,49 @@
 basePath: /
 definitions:
-  apiservice_internal_dto.AccountCreateRequest:
+  dto.AccountCreateRequest:
+    properties:
+      login:
+        type: string
+      name:
+        type: string
+      password:
+        minLength: 6
+        type: string
+      patronymic:
+        description: в PHP-форме отчество необязательное
+        type: string
+      surname:
+        type: string
+    required:
+    - login
+    - name
+    - password
+    - surname
+    type: object
+  dto.AccountLoginRequest:
+    properties:
+      login:
+        type: string
+      password:
+        type: string
+    required:
+    - login
+    - password
+    type: object
+  dto.AccountResponse:
+    properties:
+      login:
+        type: string
+      name:
+        type: string
+      patronymic:
+        type: string
+      role:
+        type: string
+      surname:
+        type: string
+    type: object
+  dto.AccountUpdateRequest:
     properties:
       login:
         type: string
@@ -16,45 +59,98 @@ definitions:
     required:
     - login
     - name
-    - password
-    - patronymic
     - surname
     type: object
-  apiservice_internal_dto.AccountLoginRequest:
+  dto.CartAddRequest:
     properties:
-      login:
-        type: string
-      password:
-        type: string
+      count:
+        minimum: 1
+        type: integer
+      product_id:
+        type: integer
     required:
-    - login
-    - password
+    - count
+    - product_id
     type: object
-  apiservice_internal_dto.AccountResponse:
+  dto.CartItemResponse:
     properties:
-      login:
+      cost:
+        type: number
+      count:
+        type: integer
+      image_url:
         type: string
-      name:
+      product_id:
+        type: integer
+      title:
         type: string
-      patronymic:
-        type: string
-      surname:
-        type: string
+      total:
+        type: number
     type: object
-  apiservice_internal_dto.OrderResponse:
+  dto.CartListResponse:
+    properties:
+      items:
+        items:
+          $ref: '#/definitions/dto.CartItemResponse'
+        type: array
+      total:
+        type: number
+    type: object
+  dto.CartUpdateRequest:
+    properties:
+      count:
+        minimum: 1
+        type: integer
+      product_id:
+        type: integer
+    required:
+    - count
+    - product_id
+    type: object
+  dto.OrderResponse:
     properties:
       address:
         type: string
       date_delivery:
         type: string
+      id:
+        type: integer
       order_status:
-        $ref: '#/definitions/apiservice_internal_model.OrderStatus'
+        $ref: '#/definitions/model.OrderStatus'
       price_all:
         type: number
       user_id:
         type: integer
     type: object
-  apiservice_internal_model.OrderStatus:
+  dto.ProductResponse:
+    properties:
+      category_name:
+        type: string
+      cost:
+        type: number
+      count:
+        type: integer
+      description:
+        type: string
+      id:
+        type: integer
+      image_url:
+        type: string
+      title:
+        type: string
+    type: object
+  handler.PlaceOrderInput:
+    properties:
+      address:
+        type: string
+      date_delivery:
+        description: 'DateDelivery в формате ГГГГ-ММ-ДД (как <input type="date">).
+          Необязательно: по умолчанию +3 дня.'
+        type: string
+    required:
+    - address
+    type: object
+  model.OrderStatus:
     enum:
     - Новый
     - Отправка
@@ -66,13 +162,6 @@ definitions:
     - OrderStatusPending
     - OrderStatusCompleted
     - OrderStatusCancelled
-  internal_handler.PlaceOrderInput:
-    properties:
-      address:
-        type: string
-    required:
-    - address
-    type: object
 host: localhost:8080
 info:
   contact: {}
@@ -81,6 +170,150 @@ info:
   title: API Service
   version: "1.0"
 paths:
+  /cart:
+    get:
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/dto.CartListResponse'
+        "401":
+          description: Unauthorized
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      security:
+      - CookieAuth: []
+      summary: Корзина
+      tags:
+      - cart
+    post:
+      consumes:
+      - application/json
+      parameters:
+      - description: Товар и количество
+        in: body
+        name: input
+        required: true
+        schema:
+          $ref: '#/definitions/dto.CartAddRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/dto.CartListResponse'
+        "400":
+          description: Bad Request
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "401":
+          description: Unauthorized
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "404":
+          description: Not Found
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "409":
+          description: Conflict
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      security:
+      - CookieAuth: []
+      summary: Добавить в корзину
+      tags:
+      - cart
+    put:
+      consumes:
+      - application/json
+      parameters:
+      - description: Товар и новое количество
+        in: body
+        name: input
+        required: true
+        schema:
+          $ref: '#/definitions/dto.CartUpdateRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/dto.CartListResponse'
+        "400":
+          description: Bad Request
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "401":
+          description: Unauthorized
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "404":
+          description: Not Found
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "409":
+          description: Conflict
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      security:
+      - CookieAuth: []
+      summary: Изменить количество
+      tags:
+      - cart
+  /cart/{product_id}:
+    delete:
+      parameters:
+      - description: ID товара
+        in: path
+        name: product_id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/dto.CartListResponse'
+        "400":
+          description: Bad Request
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "401":
+          description: Unauthorized
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      security:
+      - CookieAuth: []
+      summary: Удалить из корзины
+      tags:
+      - cart
   /login:
     post:
       consumes:
@@ -92,14 +325,14 @@ paths:
         name: input
         required: true
         schema:
-          $ref: '#/definitions/apiservice_internal_dto.AccountLoginRequest'
+          $ref: '#/definitions/dto.AccountLoginRequest'
       produces:
       - application/json
       responses:
         "200":
           description: OK
           schema:
-            $ref: '#/definitions/apiservice_internal_dto.AccountResponse'
+            $ref: '#/definitions/dto.AccountResponse'
         "400":
           description: Bad Request
           schema:
@@ -117,7 +350,6 @@ paths:
       - account
   /logout:
     post:
-      description: Удаляет cookie-сессию
       produces:
       - application/json
       responses:
@@ -132,26 +364,66 @@ paths:
       summary: Выход из аккаунта
       tags:
       - account
-  /order:
-    post:
+  /me:
+    delete:
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "401":
+          description: Unauthorized
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      security:
+      - CookieAuth: []
+      summary: Удалить аккаунт
+      tags:
+      - account
+    get:
+      description: Данные текущего пользователя (Vue использует для проверки сессии)
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/dto.AccountResponse'
+        "401":
+          description: Unauthorized
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      security:
+      - CookieAuth: []
+      summary: Профиль
+      tags:
+      - account
+    put:
       consumes:
       - application/json
-      description: Создаёт заказ из содержимого корзины авторизованного пользователя
-        и очищает корзину
+      description: Пустой password — пароль не меняется
       parameters:
-      - description: Адрес доставки
+      - description: Новые данные
         in: body
         name: input
         required: true
         schema:
-          $ref: '#/definitions/internal_handler.PlaceOrderInput'
+          $ref: '#/definitions/dto.AccountUpdateRequest'
       produces:
       - application/json
       responses:
-        "201":
-          description: Created
+        "200":
+          description: OK
           schema:
-            $ref: '#/definitions/apiservice_internal_dto.OrderResponse'
+            $ref: '#/definitions/dto.AccountResponse'
         "400":
           description: Bad Request
           schema:
@@ -160,6 +432,55 @@ paths:
             type: object
         "401":
           description: Unauthorized
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "409":
+          description: Conflict
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      security:
+      - CookieAuth: []
+      summary: Изменить профиль
+      tags:
+      - account
+  /order:
+    post:
+      consumes:
+      - application/json
+      description: Создаёт заказ из корзины, списывает остатки со склада и очищает
+        корзину
+      parameters:
+      - description: Адрес и дата доставки
+        in: body
+        name: input
+        required: true
+        schema:
+          $ref: '#/definitions/handler.PlaceOrderInput'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+          schema:
+            $ref: '#/definitions/dto.OrderResponse'
+        "400":
+          description: Bad Request
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "401":
+          description: Unauthorized
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "409":
+          description: Conflict
           schema:
             additionalProperties:
               type: string
@@ -175,27 +496,82 @@ paths:
       summary: Оформить заказ
       tags:
       - order
+  /products:
+    get:
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              $ref: '#/definitions/dto.ProductResponse'
+            type: array
+        "500":
+          description: Internal Server Error
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: Список товаров
+      tags:
+      - product
+  /products/{id}:
+    get:
+      parameters:
+      - description: ID товара
+        in: path
+        name: id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/dto.ProductResponse'
+        "400":
+          description: Bad Request
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "404":
+          description: Not Found
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: Карточка товара
+      tags:
+      - product
   /register:
     post:
       consumes:
       - application/json
-      description: Создаёт новый аккаунт по логину и паролю
       parameters:
       - description: Данные регистрации
         in: body
         name: input
         required: true
         schema:
-          $ref: '#/definitions/apiservice_internal_dto.AccountCreateRequest'
+          $ref: '#/definitions/dto.AccountCreateRequest'
       produces:
       - application/json
       responses:
         "201":
           description: Created
           schema:
-            $ref: '#/definitions/apiservice_internal_dto.AccountResponse'
+            $ref: '#/definitions/dto.AccountResponse'
         "400":
           description: Bad Request
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "409":
+          description: Conflict
           schema:
             additionalProperties:
               type: string
