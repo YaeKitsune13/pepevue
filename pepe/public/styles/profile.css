@@ -1,0 +1,9 @@
+main {
+  height: 60vh;
+  justify-self: center;
+  margin-top: 40px;
+  width: 70vw;
+  display: flex;
+  flex-flow: wrap column;
+  background-color: #ffffff70;
+}

@@ -1,26 +1,27 @@
-<head>
+<!-- <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>PepkaStore</title>
+
+</head> -->
+
+<template>
   <link rel="stylesheet" href="./styles/main.css" />
   <link rel="stylesheet" href="./styles/header.css" />
   <link rel="stylesheet" href="./styles/body.css" />
-  <link rel="stylesheet" href="./styles/buyhints.css">
-</head>
-<template>
+  <link rel="stylesheet" href="./styles/buyhints.css" />
   <body>
-    <!-- <?php include "./components/header.php"; ?> -->
     <main>
       <div class="main-head-container">
-        <img src="./images/logofull.svg" alt="fulllogo" class="fulllogo" />
+        <img src="/images/logofull.svg" alt="fulllogo" class="fulllogo" />
         <label>MERCH STORE</label>
         <button>SHOP NOW</button>
         <div class="main-head-items">
-          <img src="./images/tshirt.svg" alt="tshirt" />
-          <img src="./images/pepe2.svg" alt="pepe2" />
-          <img src="./images/cap.svg" alt="cap" />
+          <img src="/images/tshirt.svg" alt="tshirt" />
+          <img src="/images/pepe2.svg" alt="pepe2" />
+          <img src="/images/cap.svg" alt="cap" />
         </div>
-        <img src="./images/pepe1.svg" alt="pepe1" class="pepe1" />
+        <img src="/images/pepe1.svg" alt="pepe1" class="pepe1" />
       </div>
       <div class="container">
         <!-- <?php include "./components/buttons-filter.php"; ?> -->
@@ -43,7 +44,7 @@
         </div>
         <div class="about left" id="about">
           <div class="img">
-            <img class="first_about" src="./images/logo.svg" alt="logo" />
+            <img class="first_about" src="/images/logo.svg" alt="logo" />
             <div class="ellipse">
               <div class="ellipse">
                 <div class="ellipse"></div>
@@ -68,7 +69,7 @@
               shopping.</label
             >
             <button>
-              <img src="./images/twiiter.svg" alt="twiter" />
+              <img src="/images/twiiter.svg" alt="twiter" />
               TWITTER
             </button>
           </div>
@@ -77,8 +78,8 @@
       <?php include "./components/buy-hint.php"; ?> -->
         <div class="about right">
           <div class="img about2">
-            <img src="./images/Pond.svg" alt="logo" />
-            <img src="./images/pepe2.svg" alt="logo" />
+            <img src="/images/Pond.svg" alt="logo" />
+            <img src="/images/pepe2.svg" alt="logo" />
           </div>
           <div class="info">
             <label
@@ -96,7 +97,7 @@
             <div class="custom-select-container">
               <button type="button" class="select-button">
                 TOKEN CONTRACT
-                <img src="./images/arrow-down.svg" class="arrow-icon" alt="arrow" />
+                <img src="/images/arrow-down.svg" class="arrow-icon" alt="arrow" />
               </button>
 
               <div class="select-dropdown">
@@ -109,9 +110,9 @@
         </div>
         <div class="about left">
           <div class="img about3">
-            <img src="./images/peep.svg" alt="logo" />
-            <img src="./images/pipipepe.svg" alt="pipipepe" />
-            <img src="./images/pepe1.svg" alt="pepe1" />
+            <img src="/images/peep.svg" alt="logo" />
+            <img src="/images/pipipepe.svg" alt="pipipepe" />
+            <img src="/images/pepe1.svg" alt="pepe1" />
           </div>
           <div class="info">
             <label
@@ -130,7 +131,7 @@
             <div class="custom-select-container">
               <button type="button" class="select-button">
                 TOKEN CONTRACT
-                <img src="./images/arrow-down.svg" class="arrow-icon" alt="arrow" />
+                <img src="/images/arrow-down.svg" class="arrow-icon" alt="arrow" />
               </button>
 
               <div class="select-dropdown">
@@ -143,14 +144,14 @@
         </div>
         <div class="recomendation">
           <div class="card">
-            <img src="./images/product.svg" alt="product" />
+            <img src="/images/product.svg" alt="product" />
             <div class="card-bottom">
               <label>CAPS</label>
               <button>›</button>
             </div>
           </div>
           <div class="card">
-            <img src="./images/cover.svg" alt="cover" />
+            <img src="/images/cover.svg" alt="cover" />
             <div class="card-bottom">
               <label>T SHIRTS</label>
               <button>›</button>
@@ -163,7 +164,7 @@
               <span class="footer-logo">COPE<br />NOTHING</span>
               <span class="footer-desc">Not only stylish and unique, but also comfortable</span>
               <div class="footer-chars">
-                <img src="./images/tshirt.svg" alt="pndc" />
+                <img src="/images/tshirt.svg" alt="pndc" />
               </div>
             </div>
             <div class="footer-right">

@@ -34,7 +34,7 @@ if (token === null) {
 </script>
 <template>
   <header>
-    <img class="header-left" src="./images/logo.svg" alt="logo" />
+    <img class="header-left" src="/images/logo.svg" alt="logo" />
     <div class="nav-buttons-header header-center">
       <span class="nav-indicator"></span>
       <!-- <a href="./index.php" class="header-button <?php echo $current_page ==
@@ -66,10 +66,10 @@ if (token === null) {
     </div>
     <div class="additional-header-buttons header-right">
       <button name="search" type="button" class="header-button">
-        <img src="./images/search.svg" alt="search" />
+        <img src="/images/search.svg" alt="search" />
       </button>
       <a href="./cart.php" class="header-button" style="position: relative">
-        <img src="./images/cart.svg" alt="cart" />
+        <img src="/images/cart.svg" alt="cart" />
         <!-- <?php if ($cartCount > 0): ?>
           <label id="counter"><?php echo $cartCount; ?></label>
       <?php endif; ?> -->

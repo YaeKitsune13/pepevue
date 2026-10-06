@@ -1,0 +1,121 @@
+:root {
+  --brand-primary: #26d135;
+  --brand-primary-hover: #287228;
+  --brand-focus-glow: rgba(74, 144, 226, 0.2);
+
+  --form-bg-card: #ffffff;
+
+  --text-main-title: #333333;
+  --text-secondary-muted: #666666;
+
+  --ui-border-default: #dddddd;
+  --ui-shadow-card: rgba(0, 0, 0, 0.1);
+}
+
+/* Центрирование формы на странице */
+main {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  min-height: calc(100vh - 200px);
+  padding: 20px;
+}
+
+/* Стили самого "окошка" формы */
+form {
+  background-color: var(--form-bg-card);
+  padding: 40px;
+  border-radius: 15px;
+  box-shadow: 0 10px 25px var(--ui-shadow-card);
+  width: 100%;
+  max-width: 400px;
+  display: flex;
+  flex-direction: column;
+  gap: 15px;
+}
+
+/* Заголовок формы */
+form h1 {
+  margin: 0 0 10px 0;
+  font-size: 24px;
+  color: var(--text-main-title);
+  text-align: center;
+  font-family: sans-serif;
+}
+
+/* Поля ввода */
+form input[type="text"],
+form input[type="password"] {
+  width: 100%;
+  padding: 12px 15px;
+  border: 1px solid var(--ui-border-default);
+  border-radius: 8px;
+  font-size: 16px;
+  transition: all 0.3s ease;
+  outline: none;
+  box-sizing: border-box;
+}
+
+/* Эффект при клике на поле ввода */
+form input[type="text"]:focus,
+form input[type="password"]:focus {
+  border-color: var(--brand-primary);
+  box-shadow: 0 0 8px var(--brand-focus-glow);
+}
+
+/* Стили для текста и чекбокса */
+form p {
+  font-size: 14px;
+  color: var(--text-secondary-muted);
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin: 5px 0;
+}
+
+form input[type="checkbox"] {
+  width: 18px;
+  height: 18px;
+  cursor: pointer;
+}
+
+/* Кнопка */
+form button {
+  background-color: var(--brand-primary);
+  color: white;
+  padding: 14px;
+  border: none;
+  border-radius: 8px;
+  font-size: 16px;
+  font-weight: bold;
+  cursor: pointer;
+  transition:
+    background-color 0.3s ease,
+    transform 0.1s ease;
+  margin-top: 10px;
+}
+
+form button:hover {
+  background-color: var(--brand-primary-hover);
+}
+
+form button:active {
+  transform: scale(0.98);
+}
+
+/* Ссылки */
+form p a {
+  color: var(--brand-primary);
+  text-decoration: none;
+  font-weight: 600;
+  margin-left: 5px;
+}
+
+form p a:hover {
+  text-decoration: underline;
+}
+
+form p:last-child {
+  justify-content: center;
+  margin-top: 10px;
+}
