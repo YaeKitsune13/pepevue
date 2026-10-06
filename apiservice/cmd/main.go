@@ -87,8 +87,6 @@ func main() {
 
 	r := gin.Default()
 
-	// CORS для Vue (dev-сервер Vite по умолчанию на :5173). Cookie-сессия требует
-	// AllowCredentials и точного списка origin (с "*" credentials не работают).
 	origins := []string{"http://localhost:5173"}
 	if env := os.Getenv("CORS_ORIGINS"); env != "" {
 		origins = strings.Split(env, ",")
