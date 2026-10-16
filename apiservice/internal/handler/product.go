@@ -73,3 +73,22 @@ func (h *ProductHandler) Get(c *gin.Context) {
 	}
 	c.JSON(http.StatusOK, toProductResponse(product))
 }
+
+// DeleteMe удаляет (деактивирует) продукт
+// @Summary Удалить аккаунт
+// @Tags    product
+// @Produce      json
+// @Success      200  {object}  map[string]string
+// @Failure      401  {object}  map[string]string
+// @Router       /products/{id} [delete]
+func (h *ProductHandler) Delete(c *gin.Context) {
+	id, err := strconv.ParseUint(c.Param("id"), 10, 32)
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Неверный id товара"})
+		return
+	}
+	if err := h.serv.DeleteProduct(uint(id)); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Товар не получилось удалить"})
+	}
+	c.JSON(http.StatusOK, gin.H{"result": "Товар удалён"})
+}

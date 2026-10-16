@@ -109,6 +109,7 @@ func main() {
 	r.POST("/login", accountHandler.Login)
 	r.GET("/products", productHandler.List)
 	r.GET("/products/:id", productHandler.Get)
+	r.DELETE("/products/:id", productHandler.Delete)
 
 	// Приватные маршруты (требуют cookie-сессию)
 	auth := r.Group("/")

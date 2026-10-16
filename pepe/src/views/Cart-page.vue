@@ -1,127 +1,107 @@
-<!-- <?php
-require "./phpconnects/dbconnect.php";
+<script setup lang="ts">
+import { onMounted } from 'vue'
+import { useRouter } from 'vue-router'
+import { useAuthStore } from '@/stores/auth'
+import { useCartStore } from '@/stores/cart'
 
-if (!isset($_COOKIE["saveLogin"])) {
-    echo "<script>window.location.href='./signIn.php';</script>";
-    exit();
+const router = useRouter()
+const authStore = useAuthStore()
+const cartStore = useCartStore()
+
+onMounted(async () => {
+  if (!authStore.isAuth) {
+    await authStore.fetchMe()
+  }
+  if (!authStore.isAuth) {
+    router.push('/auth')
+    return
+  }
+  await cartStore.fetchCart()
+})
+
+function getItemTitle(item: any) {
+  return item.product?.title || item.Product?.Title || item.title || item.Title || 'Товар'
 }
 
-$login = $_COOKIE["saveLogin"];
-$user_query = mysqli_query(
-    $conn,
-    "SELECT id FROM users WHERE login = '$login'",
-);
-$user = mysqli_fetch_assoc($user_query);
-$user_id = $user["id"];
-
-$cart_query = mysqli_query(
-    $conn,
-    "
-    SELECT basket.id, basket.count, basket.product_id,
-           products.title, products.image, products.cost
-    FROM basket
-    JOIN products ON basket.product_id = products.id
-    WHERE basket.user_id = $user_id
-",
-);
-$cart_items = mysqli_fetch_all($cart_query, MYSQLI_ASSOC);
-
-$total = 0;
-foreach ($cart_items as $item) {
-    $total += $item["cost"] * $item["count"];
+function getItemPrice(item: any) {
+  return Number(item.product?.cost || item.Product?.Cost || item.cost || item.Cost || 0)
 }
-?> -->
+
+function getItemCount(item: any) {
+  return Number(item.count ?? item.Count ?? item.quantity ?? 0)
+}
+
+function getItemImage(item: any) {
+  const img = item.product?.image || item.Product?.Image || item.image || item.Image
+  if (!img) return '/images/product.svg'
+  return img.startsWith('/') ? img : `/images/${img}`
+}
+
+function getItemProductId(item: any) {
+  return item.product_id ?? item.ProductID ?? item.product?.id ?? item.id
+}
+</script>
+
 <template>
-  <body>
-    <main class="cart-container">
-      <h1 class="cart-title">Корзина</h1>
+  <main class="cart-container">
+    <h1 class="cart-title">Корзина</h1>
 
-      <!-- <?php if (empty($cart_items)): ?> -->
-      <!-- <div class="empty-cart">
-                <p>Корзина пуста.</p>
-                <a href="./shop.php">Перейти в магазин ←</a>
-            </div>
-        <?php else: ?>
-            <div class="cart-items-list">
-                <?php foreach ($cart_items as $item): ?>
-                    <?php
-                    $newCountMinus = $item["count"] - 1;
-                    $newCountPlus = $item["count"] + 1;
-                    ?>
-                    <div class="cart-item">
-                        <div class="cart-item-image">
-                            <img src="./images/<?= htmlspecialchars(
-                                $item["image"],
-                            ) ?>" alt="<?= htmlspecialchars($item["title"]) ?>">
-                        </div>
-                        <div class="cart-item-details">
-                            <h3 class="cart-item-title"><?= htmlspecialchars(
-                                $item["title"],
-                            ) ?></h3>
-                            <div class="cart-item-price"><?= number_format(
-                                $item["cost"],
-                                2,
-                                ".",
-                                " ",
-                            ) ?> ₽ / шт.</div>
-                        </div>
-                        <div class="cart-item-actions">
-                            <div class="quantity-controls">
-                                <?php if ($item["count"] > 1): ?>
-                                    <form action="./phpconnects/cart_update.php" method="POST" style="display: inline;">
-                                        <input type="hidden" name="basket_id" value="<?= $item[
-                                            "id"
-                                        ] ?>">
-                                        <input type="hidden" name="count" value="<?= $newCountMinus ?>">
-                                        <button type="submit" class="qty-btn">−</button>
-                                    </form>
-                                <?php else: ?>
-                                    <button class="qty-btn disabled" disabled>−</button>
-                                <?php endif; ?>
-                                <span class="item-count"><?= $item[
-                                    "count"
-                                ] ?></span>
-                                <form action="./phpconnects/cart_update.php" method="POST" style="display: inline;">
-                                    <input type="hidden" name="basket_id" value="<?= $item[
-                                        "id"
-                                    ] ?>">
-                                    <input type="hidden" name="count" value="<?= $newCountPlus ?>">
-                                    <button type="submit" class="qty-btn">+</button>
-                                </form>
-                            </div>
-                            <form action="./phpconnects/cart_remove.php" method="POST" style="display: inline;">
-                                <input type="hidden" name="basket_id" value="<?= $item[
-                                    "id"
-                                ] ?>">
-                                <button type="submit" class="remove-item">✕</button>
-                            </form>
-                        </div>
-                        <div class="cart-item-total">
-                            <?= number_format(
-                                $item["cost"] * $item["count"],
-                                2,
-                                ".",
-                                " ",
-                            ) ?> ₽
-                        </div>
-                    </div>
-                <?php endforeach; ?>
-            </div>
+    <!-- Если корзина пуста или все товары имеют count 0 -->
+    <div v-if="cartStore.validItems.length === 0" class="empty-cart">
+      <p>Корзина пуста.</p>
+      <router-link to="/shop">Перейти в магазин ←</router-link>
+    </div>
 
-            <div class="cart-summary">
-                <div class="cart-total">
-                    Итого: <span><?= number_format(
-                        $total,
-                        2,
-                        ".",
-                        " ",
-                    ) ?> ₽</span>
-                </div>
-                <a href="./checkout.php" class="btn-checkout">
-                    Оформить заказ →
-                </a>
+    <div v-else>
+      <div class="cart-items-list">
+        <div v-for="item in cartStore.validItems" :key="item.id" class="cart-item">
+          <div class="cart-item-image">
+            <img :src="getItemImage(item)" :alt="getItemTitle(item)" />
+          </div>
+
+          <div class="cart-item-details">
+            <h3 class="cart-item-title">{{ getItemTitle(item) }}</h3>
+            <div class="cart-item-price">
+              {{ getItemPrice(item).toLocaleString('ru-RU') }} ₽ / шт.
             </div>
-        <?php endif; ?> -->
-    </main>
-  </body>
+          </div>
+
+          <div class="cart-item-actions">
+            <div class="quantity-form">
+              <!-- При нажатии на минус с 1 товар удалится -->
+              <button
+                type="button"
+                @click="cartStore.updateQuantity(getItemProductId(item), getItemCount(item) - 1)"
+              >
+                −
+              </button>
+              <input type="text" :value="getItemCount(item)" readonly />
+              <button
+                type="button"
+                @click="cartStore.updateQuantity(getItemProductId(item), getItemCount(item) + 1)"
+              >
+                +
+              </button>
+            </div>
+            <div class="remove-form">
+              <button type="button" @click="cartStore.removeFromCart(getItemProductId(item))">
+                ✕
+              </button>
+            </div>
+          </div>
+
+          <div class="cart-item-total">
+            {{ (getItemPrice(item) * getItemCount(item)).toLocaleString('ru-RU') }} ₽
+          </div>
+        </div>
+      </div>
+
+      <div class="cart-summary">
+        <div class="cart-total">
+          Итого: <span>{{ cartStore.totalPrice.toLocaleString('ru-RU') }} ₽</span>
+        </div>
+        <router-link to="/checkout" class="btn-checkout"> Оформить заказ → </router-link>
+      </div>
+    </div>
+  </main>
 </template>

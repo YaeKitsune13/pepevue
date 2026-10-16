@@ -45,3 +45,11 @@ func (serv *ProductService) GetProduct(id uint) (*model.Product, error) {
 	}
 	return &product, nil
 }
+
+func (serv *ProductService) DeleteProduct(id uint) error {
+	product, err := serv.repo.GetProductById(id)
+	if err != nil {
+		return nil
+	}
+	return serv.repo.SoftDelete(product)
+}

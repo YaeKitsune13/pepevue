@@ -517,6 +517,25 @@ paths:
       tags:
       - product
   /products/{id}:
+    delete:
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "401":
+          description: Unauthorized
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: Удалить аккаунт
+      tags:
+      - product
     get:
       parameters:
       - description: ID товара

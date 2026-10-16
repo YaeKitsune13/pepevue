@@ -1,92 +1,81 @@
-<!-- <?php
-require "./phpconnects/dbconnect.php";
+<script setup lang="ts">
+import { ref, onMounted } from 'vue'
+import { useRouter } from 'vue-router'
+import { useAuthStore } from '@/stores/auth'
+import { useCartStore } from '@/stores/cart'
+import { api } from '@/api'
 
-if (!isset($_COOKIE["saveLogin"])) {
-    echo "<script>window.location.href='./signIn.php';</script>";
-    exit();
+const router = useRouter()
+const authStore = useAuthStore()
+const cartStore = useCartStore()
+
+const address = ref('')
+const deliveryDate = ref('')
+const isSubmitting = ref(false)
+
+onMounted(async () => {
+  if (!authStore.isAuth) {
+    router.push('/auth')
+    return
+  }
+  await cartStore.fetchCart()
+  if (cartStore.items.length === 0) {
+    router.push('/cart')
+  }
+})
+
+async function submitOrder() {
+  try {
+    isSubmitting.value = true
+    await api('/order', {
+      method: 'POST',
+      body: JSON.stringify({
+        address: address.value,
+        delivery_date: deliveryDate.value,
+      }),
+    })
+    alert('Заказ успешно оформлен!')
+    await cartStore.fetchCart()
+    router.push('/')
+  } catch (err: any) {
+    alert(err.message || 'Ошибка оформления заказа')
+  } finally {
+    isSubmitting.value = false
+  }
 }
+</script>
 
-$login = $_COOKIE["saveLogin"];
-$user_query = mysqli_query($conn, "SELECT * FROM users WHERE login = '$login'");
-$user = mysqli_fetch_assoc($user_query);
-$user_id = $user["id"];
-
-// Получаем корзину
-$cart_query = mysqli_query(
-    $conn,
-    "
-    SELECT basket.id, basket.count, basket.product_id,
-           products.title, products.cost
-    FROM basket
-    JOIN products ON basket.product_id = products.id
-    WHERE basket.user_id = $user_id
-",
-);
-$cart_items = mysqli_fetch_all($cart_query, MYSQLI_ASSOC);
-
-if (empty($cart_items)) {
-    echo "<script>window.location.href='./cart.php';</script>";
-    exit();
-}
-
-$total = 0;
-foreach ($cart_items as $item) {
-    $total += $item["cost"] * $item["count"];
-}
-?> -->
-<!DOCTYPE html>
 <template>
-  <body>
-    <main style="padding: 20px; max-width: 800px; margin: 0 auto">
+  <main style="padding: 20px; max-width: 800px; margin: 0 auto">
+    <div style="background-color: #fff; border-radius: 20px; padding: 30px; margin-bottom: 20px">
+      <h2>Ваш заказ:</h2>
       <div
+        v-for="item in cartStore.items"
+        :key="item.id"
         style="
-          background-color: #fff;
-          border-radius: 20px;
-          padding: 30px;
-          margin-bottom: 20px;
-          margin-right: 10px;
+          display: flex;
+          justify-content: space-between;
+          padding: 8px 0;
+          border-bottom: 1px solid #eee;
         "
       >
-        <h2>Ваш заказ:</h2>
-        <!-- <?php foreach ($cart_items as $item): ?>
-                <div style="display: flex; justify-content: space-between; padding: 8px 0; border-bottom: 1px solid #333;">
-                    <span><?= htmlspecialchars($item["title"]) ?> × <?= $item[
-     "count"
- ] ?></span>
-                    <span>$<?= number_format(
-                        $item["cost"] * $item["count"],
-                        2,
-                    ) ?></span>
-                </div>
-            <?php endforeach; ?> -->
-        <div style="text-align: right; padding-top: 10px">
-          <!-- <strong>Итого: $<?= number_format($total, 2) ?></strong> -->
-        </div>
+        <span>{{ item.product?.title }} × {{ item.count }}</span>
+        <span>{{ Number((item.product?.cost || 0) * item.count).toLocaleString('ru-RU') }} ₽</span>
       </div>
+      <div style="text-align: right; padding-top: 15px">
+        <strong>Итого: {{ cartStore.totalPrice.toLocaleString('ru-RU') }} ₽</strong>
+      </div>
+    </div>
 
-      <!-- Форма оформления -->
-      <form action="./phpconnects/order_create.php" method="POST">
-        <h2>Данные доставки:</h2>
-        <!-- <input type="text" name="surname" value="<?= htmlspecialchars(
-                $user["surname"],
-            ) ?>"
-                placeholder="Фамилия*" required style="display:block; width:100%; margin: 8px 0; padding: 10px;">
-            <input type="text" name="name" value="<?= htmlspecialchars(
-                $user["name"],
-            ) ?>"
-                placeholder="Имя*" required style="display:block; width:100%; margin: 8px 0; padding: 10px;">
-            <input type="text" name="address" placeholder="Адрес доставки*"
-                required style="display:block; width:100%; margin: 8px 0; padding: 10px;">
-            <input type="date" name="date_delivery"
-                min="<?= date("Y-m-d", strtotime("+1 day")) ?>"
-                required style="display:block; width:100%; margin: 8px 0; padding: 10px;"> -->
-        <button
-          type="submit"
-          style="margin-top: 15px; padding: 12px 30px; font-size: 16px; width: 100%"
-        >
-          Подтвердить заказ ✓
-        </button>
-      </form>
-    </main>
-  </body>
+    <form @submit.prevent="submitOrder" style="max-width: 100%">
+      <h2>Данные доставки:</h2>
+      <input type="text" :value="authStore.user?.surname" placeholder="Фамилия*" disabled />
+      <input type="text" :value="authStore.user?.name" placeholder="Имя*" disabled />
+      <input v-model="address" type="text" placeholder="Адрес доставки*" required />
+      <input v-model="deliveryDate" type="date" required />
+      <button type="submit" :disabled="isSubmitting" style="width: 100%; margin-top: 15px">
+        {{ isSubmitting ? 'Оформление...' : 'Подтвердить заказ ✓' }}
+      </button>
+    </form>
+  </main>
 </template>
