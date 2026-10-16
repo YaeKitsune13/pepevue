@@ -32,8 +32,9 @@ async function handleSubmit() {
       })
     }
     router.push('/')
-  } catch (err: any) {
-    error.value = err.message || 'Ошибка входа'
+  } catch (err: unknown) {
+    const message = err instanceof Error ? err.message : 'Ошибка входа'
+    error.value = message
   }
 }
 </script>

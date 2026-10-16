@@ -10,13 +10,30 @@ export interface User {
   patronymic?: string
 }
 
+export interface LoginCredentials {
+  login: string
+  password: string
+}
+
+export interface RegisterData {
+  login: string
+  password: string
+  name?: string
+  surname?: string
+  patronymic?: string
+}
+
+export interface UpdateUserData extends Partial<User> {
+  password?: string
+}
+
 export const useAuthStore = defineStore('auth', () => {
   const user = ref<User | null>(null)
   const isAuth = ref<boolean>(false)
   const isLoading = ref<boolean>(false)
 
   // Проверка сессии при загрузке страницы
-  async function fetchMe() {
+  async function fetchMe(): Promise<void> {
     try {
       isLoading.value = true
       const data = await api<User>('/me')
@@ -30,7 +47,7 @@ export const useAuthStore = defineStore('auth', () => {
     }
   }
 
-  async function login(credentials: Record<string, any>) {
+  async function login(credentials: LoginCredentials): Promise<void> {
     await api('/login', {
       method: 'POST',
       body: JSON.stringify(credentials),
@@ -38,7 +55,7 @@ export const useAuthStore = defineStore('auth', () => {
     await fetchMe()
   }
 
-  async function register(data: Record<string, any>) {
+  async function register(data: RegisterData): Promise<void> {
     await api('/register', {
       method: 'POST',
       body: JSON.stringify(data),
@@ -46,7 +63,7 @@ export const useAuthStore = defineStore('auth', () => {
     await fetchMe()
   }
 
-  async function logout() {
+  async function logout(): Promise<void> {
     try {
       await api('/logout', { method: 'POST' })
     } finally {
@@ -55,7 +72,7 @@ export const useAuthStore = defineStore('auth', () => {
     }
   }
 
-  async function updateProfile(data: Partial<User>) {
+  async function updateProfile(data: UpdateUserData): Promise<void> {
     const updated = await api<User>('/me', {
       method: 'PUT',
       body: JSON.stringify(data),
@@ -63,7 +80,7 @@ export const useAuthStore = defineStore('auth', () => {
     user.value = updated
   }
 
-  async function deleteAccount() {
+  async function deleteAccount(): Promise<void> {
     await api('/me', { method: 'DELETE' })
     user.value = null
     isAuth.value = false

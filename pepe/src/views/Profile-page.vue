@@ -36,8 +36,9 @@ async function handleUpdate() {
       patronymic: patronymic.value,
     })
     alert('Данные обновлены')
-  } catch (err: any) {
-    alert(err.message || 'Ошибка обновления')
+  } catch (err: unknown) {
+    const message = err instanceof Error ? err.message : 'Ошибка обновления'
+    alert(message)
   }
 }
 

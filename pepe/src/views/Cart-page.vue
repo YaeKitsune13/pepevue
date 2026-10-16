@@ -2,7 +2,7 @@
 import { onMounted } from 'vue'
 import { useRouter } from 'vue-router'
 import { useAuthStore } from '@/stores/auth'
-import { useCartStore } from '@/stores/cart'
+import { useCartStore, type CartItem } from '@/stores/cart'
 
 const router = useRouter()
 const authStore = useAuthStore()
@@ -19,26 +19,26 @@ onMounted(async () => {
   await cartStore.fetchCart()
 })
 
-function getItemTitle(item: any) {
+function getItemTitle(item: CartItem): string {
   return item.product?.title || item.Product?.Title || item.title || item.Title || 'Товар'
 }
 
-function getItemPrice(item: any) {
+function getItemPrice(item: CartItem): number {
   return Number(item.product?.cost || item.Product?.Cost || item.cost || item.Cost || 0)
 }
 
-function getItemCount(item: any) {
+function getItemCount(item: CartItem): number {
   return Number(item.count ?? item.Count ?? item.quantity ?? 0)
 }
 
-function getItemImage(item: any) {
-  const img = item.product?.image || item.Product?.Image || item.image || item.Image
+function getItemImage(item: CartItem): string {
+  const img = item.product?.image || item.Product?.Image
   if (!img) return '/images/product.svg'
   return img.startsWith('/') ? img : `/images/${img}`
 }
 
-function getItemProductId(item: any) {
-  return item.product_id ?? item.ProductID ?? item.product?.id ?? item.id
+function getItemProductId(item: CartItem): number {
+  return Number(item.product_id ?? item.ProductID ?? item.product?.id ?? item.id)
 }
 </script>
 
@@ -46,7 +46,6 @@ function getItemProductId(item: any) {
   <main class="cart-container">
     <h1 class="cart-title">Корзина</h1>
 
-    <!-- Если корзина пуста или все товары имеют count 0 -->
     <div v-if="cartStore.validItems.length === 0" class="empty-cart">
       <p>Корзина пуста.</p>
       <router-link to="/shop">Перейти в магазин ←</router-link>
@@ -68,7 +67,6 @@ function getItemProductId(item: any) {
 
           <div class="cart-item-actions">
             <div class="quantity-form">
-              <!-- При нажатии на минус с 1 товар удалится -->
               <button
                 type="button"
                 @click="cartStore.updateQuantity(getItemProductId(item), getItemCount(item) - 1)"

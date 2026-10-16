@@ -2,15 +2,24 @@
 import { ref, onMounted } from 'vue'
 import { api } from '@/api'
 
-interface Product {
+interface ProductItem {
   id: number
-  title: string
-  image: string
-  description: string
-  cost: number
+  title?: string
+  Title?: string
+  image?: string
+  Image?: string
+  description?: string
+  Description?: string
+  cost?: number
+  Cost?: number
 }
 
-const products = ref<Product[]>([])
+interface ProductsResponse {
+  products?: ProductItem[]
+  data?: ProductItem[]
+}
+
+const products = ref<ProductItem[]>([])
 const loading = ref(true)
 const error = ref('')
 
@@ -19,25 +28,17 @@ onMounted(async () => {
     loading.value = true
     error.value = ''
 
-    // Получаем ответ от API
-    const res = await api<any>('/products')
-    console.log('Ответ от сервера /products:', res)
+    const res = await api<ProductItem[] | ProductsResponse>('/products')
 
-    // Проверяем формат данных, который прислал Go:
     if (Array.isArray(res)) {
       products.value = res
-    } else if (res && Array.isArray(res.products)) {
-      products.value = res.products
-    } else if (res && Array.isArray(res.data)) {
-      products.value = res.data
-    } else {
-      products.value = []
+    } else if (res && typeof res === 'object') {
+      products.value = res.products || res.data || []
     }
-  } catch (err: any) {
+  } catch (err: unknown) {
     console.error('Ошибка загрузки каталога:', err)
-    error.value = err.message || 'Ошибка загрузки каталога'
+    error.value = err instanceof Error ? err.message : 'Ошибка загрузки каталога'
   } finally {
-    // Гарантированно выключаем статус загрузки
     loading.value = false
   }
 })
@@ -45,17 +46,14 @@ onMounted(async () => {
 
 <template>
   <main>
-    <!-- 1. Идет загрузка -->
     <div v-if="loading" style="text-align: center; padding: 60px; font-size: 18px">
       Загрузка товаров...
     </div>
 
-    <!-- 2. Произошла ошибка -->
     <div v-else-if="error" style="text-align: center; padding: 60px; color: red">
       {{ error }}
     </div>
 
-    <!-- 3. Загрузка завершилась, но товаров в БД нет -->
     <div
       v-else-if="products.length === 0"
       style="text-align: center; padding: 60px; font-size: 18px"
@@ -63,19 +61,22 @@ onMounted(async () => {
       В магазине пока нет товаров.
     </div>
 
-    <!-- 4. Сетка товаров -->
     <div v-else class="products-grid">
       <div v-for="item in products" :key="item.id" class="product-card">
         <div class="product-image">
           <img
-            :src="item.image?.startsWith('/') ? item.image : `/images/${item.image}`"
-            :alt="item.title"
+            :src="
+              item.image?.startsWith('/') ? item.image : `/images/${item.image || 'product.svg'}`
+            "
+            :alt="item.title || item.Title"
             loading="lazy"
           />
         </div>
-        <div class="product-title">{{ item.title }}</div>
-        <div class="product-description">{{ item.description }}</div>
-        <div class="product-price">{{ Number(item.cost || 0).toLocaleString('ru-RU') }} ₽</div>
+        <div class="product-title">{{ item.title || item.Title }}</div>
+        <div class="product-description">{{ item.description || item.Description }}</div>
+        <div class="product-price">
+          {{ Number(item.cost || item.Cost || 0).toLocaleString('ru-RU') }} ₽
+        </div>
         <div class="product-actions">
           <router-link :to="`/product/${item.id}`" class="btn-buy">Купить</router-link>
         </div>

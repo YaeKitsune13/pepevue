@@ -37,8 +37,9 @@ async function submitOrder() {
     alert('Заказ успешно оформлен!')
     await cartStore.fetchCart()
     router.push('/')
-  } catch (err: any) {
-    alert(err.message || 'Ошибка оформления заказа')
+  } catch (err: unknown) {
+    const message = err instanceof Error ? err.message : 'Ошибка обновления'
+    alert(message)
   } finally {
     isSubmitting.value = false
   }
@@ -60,7 +61,12 @@ async function submitOrder() {
         "
       >
         <span>{{ item.product?.title }} × {{ item.count }}</span>
-        <span>{{ Number((item.product?.cost || 0) * item.count).toLocaleString('ru-RU') }} ₽</span>
+        <span
+          >{{
+            Number((item.product?.cost || 0) * (item.count ?? 1)).toLocaleString('ru-RU')
+          }}
+          ₽</span
+        >
       </div>
       <div style="text-align: right; padding-top: 15px">
         <strong>Итого: {{ cartStore.totalPrice.toLocaleString('ru-RU') }} ₽</strong>

@@ -5,18 +5,42 @@ import { api } from '@/api'
 import { useAuthStore } from '@/stores/auth'
 import { useCartStore } from '@/stores/cart'
 
+interface Product {
+  id?: number
+  ID?: number
+  title?: string
+  Title?: string
+  image?: string
+  Image?: string
+  description?: string
+  Description?: string
+  cost?: number
+  Cost?: number
+  count?: number
+  Count?: number
+  quantity?: number
+  Quantity?: number
+  stock?: number
+  Stock?: number
+}
+
+interface ProductResponse {
+  product?: Product
+  data?: Product
+  item?: Product
+}
+
 const route = useRoute()
 const router = useRouter()
 const authStore = useAuthStore()
 const cartStore = useCartStore()
 
-const product = ref<any | null>(null)
+const product = ref<Product | null>(null)
 const count = ref(1)
 const loading = ref(true)
 const adding = ref(false)
 const error = ref('')
 
-// Определяем остаток на складе с учетом регистра из Go
 const maxStock = computed(() => {
   return Number(
     product.value?.count ??
@@ -29,27 +53,28 @@ const maxStock = computed(() => {
   )
 })
 
-function decr() {
+function decr(): void {
   if (count.value > 1) {
     count.value--
   }
 }
 
-function incr() {
+function incr(): void {
   if (count.value < maxStock.value) {
     count.value++
   }
 }
 
-async function handleAddToCart() {
+async function handleAddToCart(): Promise<void> {
   if (!product.value) return
   try {
     adding.value = true
     const productId = Number(product.value.id ?? product.value.ID)
     await cartStore.addToCart(productId, count.value)
     router.push('/cart')
-  } catch (err: any) {
-    alert(err.message || 'Не удалось добавить товар в корзину')
+  } catch (err: unknown) {
+    const msg = err instanceof Error ? err.message : 'Не удалось добавить товар в корзину'
+    alert(msg)
   } finally {
     adding.value = false
   }
@@ -60,20 +85,21 @@ onMounted(async () => {
     loading.value = true
     error.value = ''
 
-    const id = route.params.id
-    const res = await api<any>(`/products/${id}`)
+    const id = route.params.id as string
+    const res = await api<Product | ProductResponse>(`/products/${id}`)
 
-    if (res && (res.id || res.ID)) {
-      product.value = res
-    } else if (res && res.product) {
-      product.value = res.product
-    } else if (res && res.data) {
-      product.value = res.data
-    } else {
-      product.value = null
+    if (res && typeof res === 'object') {
+      if ('id' in res || 'ID' in res) {
+        product.value = res as Product
+      } else if ('product' in res && res.product) {
+        product.value = res.product
+      } else if ('data' in res && res.data) {
+        product.value = res.data
+      }
     }
-  } catch (err: any) {
-    error.value = err.message || 'Ошибка загрузки товара'
+  } catch (err: unknown) {
+    console.error('Ошибка загрузки товара:', err)
+    error.value = err instanceof Error ? err.message : 'Ошибка загрузки товара'
   } finally {
     loading.value = false
   }
@@ -88,7 +114,11 @@ onMounted(async () => {
     <div v-else class="product-detail-card">
       <div class="product-detail-image">
         <img
-          :src="product.image?.startsWith('/') ? product.image : `/images/${product.image}`"
+          :src="
+            product.image?.startsWith('/')
+              ? product.image
+              : `/images/${product.image || 'product.svg'}`
+          "
           :alt="product.title || product.Title"
         />
       </div>
@@ -99,7 +129,7 @@ onMounted(async () => {
         <div class="product-detail-price">
           {{ Number(product.cost || product.Cost || 0).toLocaleString('ru-RU') }} ₽
         </div>
-        <!-- В блоке с информацией о товаре: -->
+
         <div
           class="product-detail-stock"
           :style="maxStock === 0 ? 'background: #ffebee; color: #c62828;' : ''"
