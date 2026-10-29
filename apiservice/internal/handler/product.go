@@ -78,6 +78,7 @@ func (h *ProductHandler) Get(c *gin.Context) {
 // @Summary Удалить аккаунт
 // @Tags    product
 // @Produce      json
+// @Param        id   path      int  true  "ID товара"
 // @Success      200  {object}  map[string]string
 // @Failure      401  {object}  map[string]string
 // @Router       /products/{id} [delete]

@@ -19,11 +19,16 @@ onMounted(async () => {
   await cartStore.fetchCart()
 })
 
-// Удобный хелпер только для форматирования пути картинки
 function getItemImage(item: CartItem): string {
-  const img = item.product?.image_url
+  const anyItem = item as Record<string, any>
+  const img = item.product?.image_url || item.product?.image || anyItem.image_url || anyItem.image
+
   if (!img) return '/images/product.svg'
   return img.startsWith('/') ? img : `/images/${img}`
+}
+
+function getItemCost(item: CartItem): number {
+  return Number(item.product?.cost ?? item.cost ?? 0)
 }
 </script>
 
@@ -40,13 +45,13 @@ function getItemImage(item: CartItem): string {
       <div class="cart-items-list">
         <div v-for="item in cartStore.validItems" :key="item.id" class="cart-item">
           <div class="cart-item-image">
-            <img :src="getItemImage(item)" :alt="item.product.title" />
+            <img :src="getItemImage(item)" :alt="item.product?.title || item.title" />
           </div>
 
           <div class="cart-item-details">
-            <h3 class="cart-item-title">{{ item.product.title }}</h3>
+            <h3 class="cart-item-title">{{ item.product?.title || item.title || 'Товар' }}</h3>
             <div class="cart-item-price">
-              {{ item.product.cost.toLocaleString('ru-RU') }} ₽ / шт.
+              {{ getItemCost(item).toLocaleString('ru-RU') }} ₽ / шт.
             </div>
           </div>
 
@@ -72,7 +77,7 @@ function getItemImage(item: CartItem): string {
           </div>
 
           <div class="cart-item-total">
-            {{ (item.product.cost * item.count).toLocaleString('ru-RU') }} ₽
+            {{ (getItemCost(item) * item.count).toLocaleString('ru-RU') }} ₽
           </div>
         </div>
       </div>

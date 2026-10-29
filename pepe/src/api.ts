@@ -1,5 +1,3 @@
-// src/api.ts
-// Теперь запросы идут через Vite Proxy на бэкенд
 const BASE_URL = '/api'
 
 export async function api<T>(endpoint: string, options: RequestInit = {}): Promise<T> {

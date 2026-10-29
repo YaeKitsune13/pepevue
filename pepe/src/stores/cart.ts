@@ -5,7 +5,8 @@ import { api } from '@/api'
 export interface ProductInCart {
   id: number
   title: string
-  image_url: string
+  image_url?: string
+  image?: string
   cost: number
 }
 
@@ -13,34 +14,40 @@ export interface CartItem {
   id: number
   product_id: number
   count: number
-  product: ProductInCart
+  product?: ProductInCart
+  title?: string
+  cost?: number
+  image_url?: string
 }
 
 export const useCartStore = defineStore('cart', () => {
   const items = ref<CartItem[]>([])
 
   const validItems = computed(() => {
-    return items.value.filter((i) => i.count > 0)
+    return items.value.filter((i) => Number(i.count) > 0)
   })
 
-  const totalCount = computed(() => validItems.value.reduce((acc, i) => acc + i.count, 0))
+  const totalCount = computed(() => validItems.value.reduce((acc, i) => acc + Number(i.count), 0))
 
   const totalPrice = computed(() =>
-    validItems.value.reduce((acc, i) => acc + i.product.cost * i.count, 0),
+    validItems.value.reduce((acc, i) => {
+      const price = i.product?.cost ?? i.cost ?? 0
+      return acc + price * Number(i.count)
+    }, 0),
   )
 
   async function fetchCart(): Promise<void> {
     try {
-      // Ожидаем чистый массив от бэкенда (или подстрой под свой реальный формат, например res.cart)
-      const res = await api<CartItem[] | { cart: CartItem[] }>('/cart')
+      const res = await api<any>('/cart')
 
+      let rawItems: CartItem[] = []
       if (Array.isArray(res)) {
-        items.value = res
-      } else if (res && Array.isArray(res.cart)) {
-        items.value = res.cart
-      } else {
-        items.value = []
+        rawItems = res
+      } else if (res && typeof res === 'object') {
+        rawItems = res.cart || res.items || res.data || []
       }
+
+      items.value = rawItems.filter((i) => Number(i.count) > 0)
     } catch (e: unknown) {
       console.error('Ошибка загрузки корзины:', e)
       items.value = []

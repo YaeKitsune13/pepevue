@@ -14,7 +14,6 @@ const surname = ref('')
 const patronymic = ref('')
 const error = ref('')
 
-// Функция для переключения режима с очисткой полей и ошибок
 function toggleMode(value: boolean) {
   isRegister.value = value
   error.value = ''

@@ -32,7 +32,6 @@ export const useAuthStore = defineStore('auth', () => {
   const isAuth = ref<boolean>(false)
   const isLoading = ref<boolean>(false)
 
-  // Проверка сессии при загрузке страницы
   async function fetchMe(): Promise<void> {
     try {
       isLoading.value = true

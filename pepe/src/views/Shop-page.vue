@@ -62,7 +62,7 @@ onMounted(async () => {
         <div class="product-image">
           <img
             :src="
-              item.image?.startsWith('/')
+              item.image_url?.startsWith('/')
                 ? item.image_url
                 : `/images/${item.image_url || 'product.svg'}`
             "

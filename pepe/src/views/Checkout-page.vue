@@ -1,8 +1,8 @@
 <script setup lang="ts">
-import { ref, onMounted } from 'vue'
+import { ref, computed, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
 import { useAuthStore } from '@/stores/auth'
-import { useCartStore } from '@/stores/cart'
+import { useCartStore, type CartItem } from '@/stores/cart'
 import { api } from '@/api'
 
 const router = useRouter()
@@ -13,18 +13,46 @@ const address = ref('')
 const deliveryDate = ref('')
 const isSubmitting = ref(false)
 
+const minDeliveryDate = computed(() => {
+  const date = new Date()
+  date.setDate(date.getDate() + 1)
+
+  const year = date.getFullYear()
+  const month = String(date.getMonth() + 1).padStart(2, '0')
+  const day = String(date.getDate()).padStart(2, '0')
+
+  return `${year}-${month}-${day}`
+})
+
 onMounted(async () => {
+  if (!authStore.isAuth) {
+    await authStore.fetchMe()
+  }
   if (!authStore.isAuth) {
     router.push('/auth')
     return
   }
   await cartStore.fetchCart()
-  if (cartStore.items.length === 0) {
+  if (cartStore.validItems.length === 0) {
     router.push('/cart')
   }
+  deliveryDate.value = minDeliveryDate.value
 })
 
+function getItemTitle(item: CartItem): string {
+  return item.product?.title || item.title || 'Товар'
+}
+
+function getItemCost(item: CartItem): number {
+  return Number(item.product?.cost ?? item.cost ?? 0)
+}
+
 async function submitOrder() {
+  if (deliveryDate.value < minDeliveryDate.value) {
+    alert('Дата доставки не может быть раньше завтрашнего дня')
+    return
+  }
+
   try {
     isSubmitting.value = true
     await api('/order', {
@@ -51,7 +79,7 @@ async function submitOrder() {
     <div style="background-color: #fff; border-radius: 20px; padding: 30px; margin-bottom: 20px">
       <h2>Ваш заказ:</h2>
       <div
-        v-for="item in cartStore.items"
+        v-for="item in cartStore.validItems"
         :key="item.id"
         style="
           display: flex;
@@ -60,8 +88,8 @@ async function submitOrder() {
           border-bottom: 1px solid #eee;
         "
       >
-        <span>{{ item.product.title }} × {{ item.count }}</span>
-        <span> {{ (item.product.cost * item.count).toLocaleString('ru-RU') }} ₽ </span>
+        <span>{{ getItemTitle(item) }} × {{ item.count }}</span>
+        <span>{{ (getItemCost(item) * item.count).toLocaleString('ru-RU') }} ₽</span>
       </div>
       <div style="text-align: right; padding-top: 15px">
         <strong>Итого: {{ cartStore.totalPrice.toLocaleString('ru-RU') }} ₽</strong>
@@ -73,7 +101,10 @@ async function submitOrder() {
       <input type="text" :value="authStore.user?.surname" placeholder="Фамилия*" disabled />
       <input type="text" :value="authStore.user?.name" placeholder="Имя*" disabled />
       <input v-model="address" type="text" placeholder="Адрес доставки*" required />
-      <input v-model="deliveryDate" type="date" required />
+
+      <!-- Атрибут :min блокирует выбор более ранних дат в календаре -->
+      <input v-model="deliveryDate" type="date" :min="minDeliveryDate" required />
+
       <button type="submit" :disabled="isSubmitting" style="width: 100%; margin-top: 15px">
         {{ isSubmitting ? 'Оформление...' : 'Подтвердить заказ ✓' }}
       </button>

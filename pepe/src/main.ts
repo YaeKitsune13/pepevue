@@ -4,7 +4,6 @@ import { createPinia } from 'pinia'
 import App from './App.vue'
 import router from './router/index'
 
-// Подключение CSS из public
 import './styles/main.css'
 import './styles/header.css'
 import './styles/body.css'

@@ -8,7 +8,7 @@ import { useCartStore } from '@/stores/cart'
 interface Product {
   id: number
   title: string
-  image: string
+  image_url: string
   description: string
   cost: number
   count: number
@@ -96,9 +96,9 @@ onMounted(async () => {
       <div class="product-detail-image">
         <img
           :src="
-            product.image?.startsWith('/')
-              ? product.image
-              : `/images/${product.image || 'product.svg'}`
+            product.image_url?.startsWith('/')
+              ? product.image_url
+              : `/images/${product.image_url || 'product.svg'}`
           "
           :alt="product.title"
         />

@@ -30,7 +30,6 @@ onMounted(async () => {
 
 async function handleUpdate() {
   try {
-    // Собираем объект для отправки. Пароль добавляем только если он был введен
     const updateData: {
       surname: string
       name: string
@@ -50,7 +49,6 @@ async function handleUpdate() {
 
     await authStore.updateProfile(updateData)
 
-    // Очищаем поле пароля после успешного обновления
     password.value = ''
     alert('Данные обновлены')
   } catch (err: unknown) {

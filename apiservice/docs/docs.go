@@ -614,6 +614,15 @@ const docTemplate = `{
                     "product"
                 ],
                 "summary": "Удалить аккаунт",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "ID товара",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
                 "responses": {
                     "200": {
                         "description": "OK",
