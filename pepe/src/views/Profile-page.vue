@@ -30,11 +30,28 @@ onMounted(async () => {
 
 async function handleUpdate() {
   try {
-    await authStore.updateProfile({
+    // Собираем объект для отправки. Пароль добавляем только если он был введен
+    const updateData: {
+      surname: string
+      name: string
+      patronymic: string
+      login: string
+      password?: string
+    } = {
       surname: surname.value,
       name: name.value,
       patronymic: patronymic.value,
-    })
+      login: login.value,
+    }
+
+    if (password.value.trim() !== '') {
+      updateData.password = password.value
+    }
+
+    await authStore.updateProfile(updateData)
+
+    // Очищаем поле пароля после успешного обновления
+    password.value = ''
     alert('Данные обновлены')
   } catch (err: unknown) {
     const message = err instanceof Error ? err.message : 'Ошибка обновления'

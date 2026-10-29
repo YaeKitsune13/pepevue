@@ -19,26 +19,11 @@ onMounted(async () => {
   await cartStore.fetchCart()
 })
 
-function getItemTitle(item: CartItem): string {
-  return item.product?.title || item.Product?.Title || item.title || item.Title || 'Товар'
-}
-
-function getItemPrice(item: CartItem): number {
-  return Number(item.product?.cost || item.Product?.Cost || item.cost || item.Cost || 0)
-}
-
-function getItemCount(item: CartItem): number {
-  return Number(item.count ?? item.Count ?? item.quantity ?? 0)
-}
-
+// Удобный хелпер только для форматирования пути картинки
 function getItemImage(item: CartItem): string {
-  const img = item.product?.image || item.Product?.Image
+  const img = item.product?.image_url
   if (!img) return '/images/product.svg'
   return img.startsWith('/') ? img : `/images/${img}`
-}
-
-function getItemProductId(item: CartItem): number {
-  return Number(item.product_id ?? item.ProductID ?? item.product?.id ?? item.id)
 }
 </script>
 
@@ -55,13 +40,13 @@ function getItemProductId(item: CartItem): number {
       <div class="cart-items-list">
         <div v-for="item in cartStore.validItems" :key="item.id" class="cart-item">
           <div class="cart-item-image">
-            <img :src="getItemImage(item)" :alt="getItemTitle(item)" />
+            <img :src="getItemImage(item)" :alt="item.product.title" />
           </div>
 
           <div class="cart-item-details">
-            <h3 class="cart-item-title">{{ getItemTitle(item) }}</h3>
+            <h3 class="cart-item-title">{{ item.product.title }}</h3>
             <div class="cart-item-price">
-              {{ getItemPrice(item).toLocaleString('ru-RU') }} ₽ / шт.
+              {{ item.product.cost.toLocaleString('ru-RU') }} ₽ / шт.
             </div>
           </div>
 
@@ -69,27 +54,25 @@ function getItemProductId(item: CartItem): number {
             <div class="quantity-form">
               <button
                 type="button"
-                @click="cartStore.updateQuantity(getItemProductId(item), getItemCount(item) - 1)"
+                @click="cartStore.updateQuantity(item.product_id, item.count - 1)"
               >
                 −
               </button>
-              <input type="text" :value="getItemCount(item)" readonly />
+              <input type="text" :value="item.count" readonly />
               <button
                 type="button"
-                @click="cartStore.updateQuantity(getItemProductId(item), getItemCount(item) + 1)"
+                @click="cartStore.updateQuantity(item.product_id, item.count + 1)"
               >
                 +
               </button>
             </div>
             <div class="remove-form">
-              <button type="button" @click="cartStore.removeFromCart(getItemProductId(item))">
-                ✕
-              </button>
+              <button type="button" @click="cartStore.removeFromCart(item.product_id)">✕</button>
             </div>
           </div>
 
           <div class="cart-item-total">
-            {{ (getItemPrice(item) * getItemCount(item)).toLocaleString('ru-RU') }} ₽
+            {{ (item.product.cost * item.count).toLocaleString('ru-RU') }} ₽
           </div>
         </div>
       </div>

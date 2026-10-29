@@ -6,22 +6,12 @@ import { useAuthStore } from '@/stores/auth'
 import { useCartStore } from '@/stores/cart'
 
 interface Product {
-  id?: number
-  ID?: number
-  title?: string
-  Title?: string
-  image?: string
-  Image?: string
-  description?: string
-  Description?: string
-  cost?: number
-  Cost?: number
-  count?: number
-  Count?: number
-  quantity?: number
-  Quantity?: number
-  stock?: number
-  Stock?: number
+  id: number
+  title: string
+  image: string
+  description: string
+  cost: number
+  count: number
 }
 
 interface ProductResponse {
@@ -41,17 +31,7 @@ const loading = ref(true)
 const adding = ref(false)
 const error = ref('')
 
-const maxStock = computed(() => {
-  return Number(
-    product.value?.count ??
-      product.value?.Count ??
-      product.value?.quantity ??
-      product.value?.Quantity ??
-      product.value?.stock ??
-      product.value?.Stock ??
-      99,
-  )
-})
+const maxStock = computed(() => product.value?.count ?? 99)
 
 function decr(): void {
   if (count.value > 1) {
@@ -69,8 +49,7 @@ async function handleAddToCart(): Promise<void> {
   if (!product.value) return
   try {
     adding.value = true
-    const productId = Number(product.value.id ?? product.value.ID)
-    await cartStore.addToCart(productId, count.value)
+    await cartStore.addToCart(product.value.id, count.value)
     router.push('/cart')
   } catch (err: unknown) {
     const msg = err instanceof Error ? err.message : 'Не удалось добавить товар в корзину'
@@ -89,12 +68,14 @@ onMounted(async () => {
     const res = await api<Product | ProductResponse>(`/products/${id}`)
 
     if (res && typeof res === 'object') {
-      if ('id' in res || 'ID' in res) {
+      if ('id' in res) {
         product.value = res as Product
       } else if ('product' in res && res.product) {
         product.value = res.product
       } else if ('data' in res && res.data) {
         product.value = res.data
+      } else if ('item' in res && res.item) {
+        product.value = res.item
       }
     }
   } catch (err: unknown) {
@@ -119,16 +100,14 @@ onMounted(async () => {
               ? product.image
               : `/images/${product.image || 'product.svg'}`
           "
-          :alt="product.title || product.Title"
+          :alt="product.title"
         />
       </div>
 
       <div class="product-detail-info">
-        <h1 class="product-detail-title">{{ product.title || product.Title }}</h1>
-        <p class="product-detail-description">{{ product.description || product.Description }}</p>
-        <div class="product-detail-price">
-          {{ Number(product.cost || product.Cost || 0).toLocaleString('ru-RU') }} ₽
-        </div>
+        <h1 class="product-detail-title">{{ product.title }}</h1>
+        <p class="product-detail-description">{{ product.description }}</p>
+        <div class="product-detail-price">{{ product.cost.toLocaleString('ru-RU') }} ₽</div>
 
         <div
           class="product-detail-stock"

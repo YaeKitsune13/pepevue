@@ -11,6 +11,7 @@ import ProductCard from '@/ui/Product-Card.vue'
       <img src="/images/logofull.svg" alt="fulllogo" class="fulllogo" />
       <label>MERCH STORE</label>
       <button @click="$router.push('/shop')">SHOP NOW</button>
+
       <div class="main-head-items">
         <img src="/images/tshirt.svg" alt="tshirt" />
         <img src="/images/pepe2.svg" alt="pepe2" />
@@ -37,6 +38,7 @@ import ProductCard from '@/ui/Product-Card.vue'
             </div>
           </div>
         </div>
+
         <div class="info">
           <label>
             <strong style="font-size: 35px; text-wrap-mode: nowrap">
@@ -46,10 +48,12 @@ import ProductCard from '@/ui/Product-Card.vue'
               </span>
             </strong>
           </label>
+
           <label class="info_text">
             Are you ready for COPE? Our team has worked hard to create a unique merch for pepe &
             pndc holders.
           </label>
+
           <button>
             <img src="/images/twiiter.svg" alt="twiter" />
             TWITTER
@@ -65,6 +69,7 @@ import ProductCard from '@/ui/Product-Card.vue'
           <img src="/images/Pond.svg" alt="logo" />
           <img src="/images/pepe2.svg" alt="logo" />
         </div>
+
         <div class="info">
           <label>
             <strong style="font-size: 35px; text-wrap-mode: nowrap">
@@ -74,6 +79,7 @@ import ProductCard from '@/ui/Product-Card.vue'
               </span>
             </strong>
           </label>
+
           <label class="info_text"> PNDC it's a token drived by early adopters of PEPE... </label>
         </div>
       </div>
@@ -87,6 +93,7 @@ import ProductCard from '@/ui/Product-Card.vue'
               <img src="/images/tshirt.svg" alt="pndc" />
             </div>
           </div>
+
           <div class="footer-right">
             <nav class="footer-nav">
               <button @click="$router.push('/shop')">SHOP</button>
@@ -94,6 +101,7 @@ import ProductCard from '@/ui/Product-Card.vue'
               <button>HOW TO BUY</button>
               <button>TOKENS</button>
             </nav>
+
             <div class="footer-support">
               <span>ARE THERE ANY ISSUES WITH THE DELIVERY OR PAYMENT CONFIRMATION?</span>
               <button>CONTACT SUPPORT</button>

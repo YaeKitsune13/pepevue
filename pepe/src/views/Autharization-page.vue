@@ -14,6 +14,17 @@ const surname = ref('')
 const patronymic = ref('')
 const error = ref('')
 
+// Функция для переключения режима с очисткой полей и ошибок
+function toggleMode(value: boolean) {
+  isRegister.value = value
+  error.value = ''
+  login.value = ''
+  password.value = ''
+  name.value = ''
+  surname.value = ''
+  patronymic.value = ''
+}
+
 async function handleSubmit() {
   error.value = ''
   try {
@@ -33,8 +44,7 @@ async function handleSubmit() {
     }
     router.push('/')
   } catch (err: unknown) {
-    const message = err instanceof Error ? err.message : 'Ошибка входа'
-    error.value = message
+    error.value = err instanceof Error ? err.message : 'Ошибка входа'
   }
 }
 </script>
@@ -44,7 +54,7 @@ async function handleSubmit() {
     <form @submit.prevent="handleSubmit">
       <h1>{{ isRegister ? 'Регистрация' : 'Авторизация' }}</h1>
 
-      <p v-if="error" style="color: red; justify-content: center">{{ error }}</p>
+      <p v-if="error" style="color: red; text-align: center">{{ error }}</p>
 
       <template v-if="isRegister">
         <input v-model="surname" type="text" placeholder="Фамилия*" required />
@@ -56,19 +66,21 @@ async function handleSubmit() {
       <input v-model="password" type="password" placeholder="Пароль*" required />
 
       <p v-if="isRegister">
-        Согласие на обработку данных
-        <input type="checkbox" required />
+        <label>
+          <input type="checkbox" required />
+          Согласие на обработку данных
+        </label>
       </p>
 
       <button type="submit">{{ isRegister ? 'Зарегистрироваться' : 'Войти' }}</button>
 
-      <p v-if="!isRegister">
-        Нет аккаунта?
-        <a href="#" @click.prevent="isRegister = true">Зарегистрироваться</a>
-      </p>
-      <p v-else>
-        Есть аккаунт?
-        <a href="#" @click.prevent="isRegister = false">Войти</a>
+      <p>
+        <template v-if="!isRegister">
+          Нет аккаунта? <a href="#" @click.prevent="toggleMode(true)">Зарегистрироваться</a>
+        </template>
+        <template v-else>
+          Есть аккаунт? <a href="#" @click.prevent="toggleMode(false)">Войти</a>
+        </template>
       </p>
     </form>
   </main>

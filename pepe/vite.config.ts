@@ -22,10 +22,6 @@ export default defineConfig({
         // /api/products -> http://127.0.0.1:8080/products
         rewrite: (path) => path.replace(/^\/api/, ''),
       },
-      '/swagger': {
-        target: 'http://127.0.0.1:8080',
-        changeOrigin: true,
-      },
     },
   },
 })

@@ -1,73 +1,46 @@
-import { defineStore } from 'pinia'
 import { ref, computed } from 'vue'
+import { defineStore } from 'pinia'
 import { api } from '@/api'
 
 export interface ProductInCart {
-  id?: number
-  ID?: number
-  title?: string
-  Title?: string
-  image?: string
-  Image?: string
-  cost?: number
-  Cost?: number
+  id: number
+  title: string
+  image_url: string
+  cost: number
 }
 
 export interface CartItem {
   id: number
-  product_id?: number
-  ProductID?: number
-  count?: number
-  Count?: number
-  quantity?: number
-  product?: ProductInCart
-  Product?: ProductInCart
-  cost?: number
-  Cost?: number
-  title?: string
-  Title?: string
-}
-
-interface CartResponse {
-  cart?: CartItem[]
-  items?: CartItem[]
-  data?: CartItem[]
+  product_id: number
+  count: number
+  product: ProductInCart
 }
 
 export const useCartStore = defineStore('cart', () => {
   const items = ref<CartItem[]>([])
 
   const validItems = computed(() => {
-    return items.value.filter((i) => {
-      const count = Number(i.count ?? i.Count ?? i.quantity ?? 0)
-      return count > 0
-    })
+    return items.value.filter((i) => i.count > 0)
   })
 
-  const totalCount = computed(() =>
-    validItems.value.reduce((acc, i) => acc + Number(i.count ?? i.Count ?? i.quantity ?? 0), 0),
-  )
+  const totalCount = computed(() => validItems.value.reduce((acc, i) => acc + i.count, 0))
 
   const totalPrice = computed(() =>
-    validItems.value.reduce((acc, i) => {
-      const cost = Number(i.product?.cost ?? i.Product?.Cost ?? i.cost ?? i.Cost ?? 0)
-      const count = Number(i.count ?? i.Count ?? i.quantity ?? 0)
-      return acc + cost * count
-    }, 0),
+    validItems.value.reduce((acc, i) => acc + i.product.cost * i.count, 0),
   )
 
   async function fetchCart(): Promise<void> {
     try {
-      const res = await api<CartItem[] | CartResponse>('/cart')
+      // Ожидаем чистый массив от бэкенда (или подстрой под свой реальный формат, например res.cart)
+      const res = await api<CartItem[] | { cart: CartItem[] }>('/cart')
 
-      let rawItems: CartItem[] = []
       if (Array.isArray(res)) {
-        rawItems = res
-      } else if (res && typeof res === 'object') {
-        rawItems = res.cart || res.items || res.data || []
+        items.value = res
+      } else if (res && Array.isArray(res.cart)) {
+        items.value = res.cart
+      } else {
+        items.value = []
       }
-
-      items.value = rawItems.filter((i) => Number(i.count ?? i.Count ?? i.quantity ?? 0) > 0)
     } catch (e: unknown) {
       console.error('Ошибка загрузки корзины:', e)
       items.value = []
