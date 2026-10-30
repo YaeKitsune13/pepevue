@@ -1,37 +1,21 @@
 <script setup lang="ts">
-import { ref, computed, onMounted } from 'vue'
+import { ref, onMounted } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
-import { api } from '@/api'
+import { storeToRefs } from 'pinia'
+import { useProductsStore } from '@/stores/products'
 import { useAuthStore } from '@/stores/auth'
 import { useCartStore } from '@/stores/cart'
-
-interface Product {
-  id: number
-  title: string
-  image_url: string
-  description: string
-  cost: number
-  count: number
-}
-
-interface ProductResponse {
-  product?: Product
-  data?: Product
-  item?: Product
-}
 
 const route = useRoute()
 const router = useRouter()
 const authStore = useAuthStore()
 const cartStore = useCartStore()
+const productsStore = useProductsStore()
 
-const product = ref<Product | null>(null)
+const { product, loading, error, maxStock } = storeToRefs(productsStore)
+
 const count = ref(1)
-const loading = ref(true)
 const adding = ref(false)
-const error = ref('')
-
-const maxStock = computed(() => product.value?.count ?? 99)
 
 function decr(): void {
   if (count.value > 1) {
@@ -60,30 +44,8 @@ async function handleAddToCart(): Promise<void> {
 }
 
 onMounted(async () => {
-  try {
-    loading.value = true
-    error.value = ''
-
-    const id = route.params.id as string
-    const res = await api<Product | ProductResponse>(`/products/${id}`)
-
-    if (res && typeof res === 'object') {
-      if ('id' in res) {
-        product.value = res as Product
-      } else if ('product' in res && res.product) {
-        product.value = res.product
-      } else if ('data' in res && res.data) {
-        product.value = res.data
-      } else if ('item' in res && res.item) {
-        product.value = res.item
-      }
-    }
-  } catch (err: unknown) {
-    console.error('Ошибка загрузки товара:', err)
-    error.value = err instanceof Error ? err.message : 'Ошибка загрузки товара'
-  } finally {
-    loading.value = false
-  }
+  const id = route.params.id as string
+  await productsStore.fetchProductById(id)
 })
 </script>
 

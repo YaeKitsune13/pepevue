@@ -1,42 +1,14 @@
 <script setup lang="ts">
-import { ref, onMounted } from 'vue'
-import { api } from '@/api'
+import { onMounted } from 'vue'
+import { storeToRefs } from 'pinia'
+import { useProductsStore } from '@/stores/products'
 
-interface ProductItem {
-  id: number
-  title: string
-  image_url: string
-  description: string
-  cost: number
-}
-
-interface ProductsResponse {
-  products?: ProductItem[]
-  data?: ProductItem[]
-}
-
-const products = ref<ProductItem[]>([])
-const loading = ref(true)
-const error = ref('')
+const productsStore = useProductsStore()
+// Используем storeToRefs, чтобы сохранить реактивность реактивных полей стора
+const { products, loading, error } = storeToRefs(productsStore)
 
 onMounted(async () => {
-  try {
-    loading.value = true
-    error.value = ''
-
-    const res = await api<ProductItem[] | ProductsResponse>('/products')
-
-    if (Array.isArray(res)) {
-      products.value = res
-    } else if (res && typeof res === 'object') {
-      products.value = res.products || res.data || []
-    }
-  } catch (err: unknown) {
-    console.error('Ошибка загрузки каталога:', err)
-    error.value = err instanceof Error ? err.message : 'Ошибка загрузки каталога'
-  } finally {
-    loading.value = false
-  }
+  await productsStore.fetchProducts()
 })
 </script>
 
