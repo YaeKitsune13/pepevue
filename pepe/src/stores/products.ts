@@ -9,7 +9,7 @@ export interface ProductItem {
   image_url: string
   description: string
   cost: number
-  count?: number // добавлено на случай, если приходит с бэка
+  count?: number
 }
 
 interface ProductsResponse {
@@ -24,16 +24,13 @@ interface ProductResponse {
 }
 
 export const useProductsStore = defineStore('products', () => {
-  // Состояние
   const products = ref<ProductItem[]>([])
   const product = ref<ProductItem | null>(null)
   const loading = ref(false)
   const error = ref('')
 
-  // Геттеры
   const maxStock = computed(() => product.value?.count ?? 99)
 
-  // Действия (Actions)
   async function fetchProducts(): Promise<void> {
     try {
       loading.value = true

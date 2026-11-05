@@ -2,7 +2,6 @@ package repository
 
 import (
 	"apiservice/internal/model"
-	"fmt"
 
 	"gorm.io/gorm"
 )
@@ -35,15 +34,10 @@ func (r *ProductRepository) GetProductById(id uint) (model.Product, error) {
 
 func (r *ProductRepository) SoftDelete(product model.Product) error {
 	return r.db.Transaction(func(tx *gorm.DB) error {
-		freed := fmt.Sprintf("%s__deleted_%d", product.Title, product.ID)
-		if err := tx.Model(&product).Update("title", freed).Error; err != nil {
-			return err
-		}
 		return tx.Delete(&product).Error
 	})
 }
 
-// DecreaseStock атомарно уменьшает остаток. false — если остатка не хватило.
 func (r *ProductRepository) DecreaseStock(tx *gorm.DB, productID uint, count int16) (bool, error) {
 	res := tx.Model(&model.Product{}).
 		Where("id = ? AND `count` >= ?", productID, count).

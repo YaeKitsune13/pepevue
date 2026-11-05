@@ -99,3 +99,6 @@ func (s *OrderService) PlaceOrder(userID uint, address string, deliveryDate time
 	}
 	return finalOrder, nil
 }
+func (s *OrderService) GetOrdersByUserID(userID uint) ([]model.Order, error) {
+	return s.orderRepo.GetByUserID(userID)
+}

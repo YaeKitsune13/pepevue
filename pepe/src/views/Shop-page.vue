@@ -4,7 +4,6 @@ import { storeToRefs } from 'pinia'
 import { useProductsStore } from '@/stores/products'
 
 const productsStore = useProductsStore()
-// Используем storeToRefs, чтобы сохранить реактивность реактивных полей стора
 const { products, loading, error } = storeToRefs(productsStore)
 
 onMounted(async () => {

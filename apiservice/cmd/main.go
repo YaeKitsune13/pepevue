@@ -126,6 +126,8 @@ func main() {
 		auth.DELETE("/cart/:product_id", cartHandler.Remove)
 
 		auth.POST("/order", orderHandler.PlaceOrder)
+		auth.POST("/order", orderHandler.PlaceOrder)
+		auth.GET("/orders/get/:user_id", orderHandler.GetByUserID)
 	}
 
 	r.Run()
